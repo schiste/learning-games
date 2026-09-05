@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { beep, fanfare } from "./audio";
+import DecimalPage from "./DecimalPage";
 import {
   answerOptions,
   balanceRound,
@@ -24,6 +25,7 @@ declare global {
 }
 
 type GameId = "box" | "hands" | "basket" | "frog" | "bowling" | "holes" | "pairs" | "timer" | "cash" | "balance" | "path" | "share";
+type TopicId = "ten" | "decimal";
 type Color = "sky" | "sun" | "berry" | "leaf";
 type GameInfo = { id: GameId; label: string; icon: string; color: Color; timed?: boolean };
 
@@ -1217,6 +1219,7 @@ function GameNav({ game, onSelect }: { game: GameId; onSelect: (game: GameId) =>
 }
 
 export default function App() {
+  const [topic, setTopic] = useState<TopicId>(() => window.location.hash === "#nombres" ? "decimal" : "ten");
   const [game, setGame] = useState<GameId>("box");
   const [complexities, setComplexities] = useState<Record<GameId, Complexity>>({
     box: 1,
@@ -1236,6 +1239,12 @@ export default function App() {
   const complexity = complexities[game];
 
   useEffect(() => {
+    const readTopic = () => setTopic(window.location.hash === "#nombres" ? "decimal" : "ten");
+    window.addEventListener("hashchange", readTopic);
+    return () => window.removeEventListener("hashchange", readTopic);
+  }, []);
+
+  useEffect(() => {
     window.render_game_to_text = () => {
       const stage = document.querySelector(".game-stage");
       const frogPond = stage?.querySelector<HTMLElement>(".frog-pond");
@@ -1245,17 +1254,22 @@ export default function App() {
       const balanceGame = stage?.querySelector<HTMLElement>(".balance-game");
       const pathGame = stage?.querySelector<HTMLElement>(".path-game");
       const shareGame = stage?.querySelector<HTMLElement>(".share-game");
+      const decimalStage = stage?.matches(".decimal-stage") ? stage as HTMLElement : null;
+      const decimalState = stage?.querySelector<HTMLElement>(".decimal-game-state");
       const visibleButtons = [...(stage?.querySelectorAll("button:not([disabled])") ?? [])]
         .map((button) => button.getAttribute("aria-label") || button.textContent?.trim())
         .filter(Boolean);
       return JSON.stringify({
         coordinateSystem: "DOM layout; origin top-left; x right; y down",
-        game,
-        complexity,
+        topic,
+        game: decimalStage?.dataset.decimalGame ?? game,
+        complexity: Number(decimalStage?.dataset.complexity ?? complexity),
         instruction: stage?.querySelector(".instruction")?.textContent?.trim() ?? null,
         equation: stage?.querySelector(".equation, .bowling-equation, .cash-equation")?.textContent?.trim() ?? null,
         feedback: stage?.querySelector(".mistake-feedback.is-visible")?.textContent?.trim() ?? null,
-        scene: frogPond
+        scene: decimalState
+          ? JSON.parse(decimalState.dataset.scene ?? "null")
+          : frogPond
           ? { start: Number(frogPond.dataset.start), position: Number(frogPond.dataset.position), destination: 10 }
           : bowlingLane
             ? { phase: bowlingLane.dataset.phase, standing: Number(bowlingLane.dataset.standing), knocked: Number(bowlingLane.dataset.knocked) }
@@ -1290,7 +1304,7 @@ export default function App() {
       delete (window as Partial<Window>).render_game_to_text;
       delete (window as Partial<Window>).advanceTime;
     };
-  }, [complexity, game]);
+  }, [complexity, game, topic]);
 
   return (
     <div className="app-shell">
@@ -1304,31 +1318,40 @@ export default function App() {
         <a className="source-link" href="https://github.com/schiste/learning-games">Projet libre <span aria-hidden="true">↗</span></a>
       </header>
 
+      <nav className="topic-switch" aria-label="Choisir un parcours">
+        <a href="#faire-10" className={topic === "ten" ? "is-active" : ""} aria-current={topic === "ten" ? "page" : undefined}>Faire 10</a>
+        <a href="#nombres" className={topic === "decimal" ? "is-active" : ""} aria-current={topic === "decimal" ? "page" : undefined}>Construire les nombres</a>
+      </nav>
+
       <main>
-        <GameNav game={game} onSelect={setGame} />
-        <section className={`game-stage accent-${selected.color}`} aria-label={selected.label}>
-          <div className="stage-title">
-            <div className="stage-name"><span>{selected.icon}</span><h2>{selected.label}</h2>{selected.timed && <span className="timed-badge">◷ Chronométré</span>}</div>
-            <ComplexityPicker
-              value={complexity}
-              onChange={(value) => setComplexities((current) => ({ ...current, [game]: value }))}
-            />
-          </div>
-          <div className="stage-body" key={`${game}-${complexity}`} data-game={game} data-complexity={complexity}>
-            {game === "box" && <BoxGame complexity={complexity} />}
-            {game === "hands" && <HandsGame complexity={complexity} />}
-            {game === "basket" && <BasketGame complexity={complexity} />}
-            {game === "frog" && <FrogGame complexity={complexity} />}
-            {game === "bowling" && <BowlingGame complexity={complexity} />}
-            {game === "holes" && <HolesGame complexity={complexity} />}
-            {game === "pairs" && <PairsGame complexity={complexity} />}
-            {game === "timer" && <TimerGame complexity={complexity} />}
-            {game === "cash" && <CashGame complexity={complexity} />}
-            {game === "balance" && <BalanceGame complexity={complexity} />}
-            {game === "path" && <PathGame complexity={complexity} />}
-            {game === "share" && <ShareGame complexity={complexity} />}
-          </div>
-        </section>
+        {topic === "decimal" ? <DecimalPage /> : (
+          <>
+            <GameNav game={game} onSelect={setGame} />
+            <section className={`game-stage accent-${selected.color}`} aria-label={selected.label}>
+              <div className="stage-title">
+                <div className="stage-name"><span>{selected.icon}</span><h2>{selected.label}</h2>{selected.timed && <span className="timed-badge">◷ Chronométré</span>}</div>
+                <ComplexityPicker
+                  value={complexity}
+                  onChange={(value) => setComplexities((current) => ({ ...current, [game]: value }))}
+                />
+              </div>
+              <div className="stage-body" key={`${game}-${complexity}`} data-game={game} data-complexity={complexity}>
+                {game === "box" && <BoxGame complexity={complexity} />}
+                {game === "hands" && <HandsGame complexity={complexity} />}
+                {game === "basket" && <BasketGame complexity={complexity} />}
+                {game === "frog" && <FrogGame complexity={complexity} />}
+                {game === "bowling" && <BowlingGame complexity={complexity} />}
+                {game === "holes" && <HolesGame complexity={complexity} />}
+                {game === "pairs" && <PairsGame complexity={complexity} />}
+                {game === "timer" && <TimerGame complexity={complexity} />}
+                {game === "cash" && <CashGame complexity={complexity} />}
+                {game === "balance" && <BalanceGame complexity={complexity} />}
+                {game === "path" && <PathGame complexity={complexity} />}
+                {game === "share" && <ShareGame complexity={complexity} />}
+              </div>
+            </section>
+          </>
+        )}
       </main>
 
       <footer>

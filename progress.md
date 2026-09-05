@@ -4,6 +4,8 @@ Follow-up prompt: Give timed games a progressively filling background, support k
 
 Current prompt: Implement four new expert games (La caisse, La balance, Le chemin, Le partage) and remove the introductory heading/copy block for now.
 
+New prompt: Add a second page with the same « Je découvre / Je m’entraîne / Je maîtrise » progression so children understand the decimal place-value system from tens through numbers such as 1,093.
+
 ## Progress
 
 - 2026-09-05: Defined three shared complexity grades: Découverte, Entraînement, Défi.
@@ -21,10 +23,14 @@ Current prompt: Implement four new expert games (La caisse, La balance, Le chemi
 - 2026-09-05: Built La caisse, La balance, Le chemin, and Le partage as four distinct tap-first expert mechanics, each with three complexity levels and persistent, actionable mistake feedback.
 - 2026-09-05: Removed the introductory copy block and added a compact third navigation row, « Je maîtrise », directly below the site header.
 - 2026-09-05: Browser-tested every new game at levels 1, 2, and 3, including incorrect attempts, undo/removal controls, successful completion, semantic text state, and the 360 px layout with zero overflow or console errors.
+- 2026-09-05: Defined and tested a shared decimal progression: tens/units at level 1, hundreds at level 2, and thousands with internal zeroes at level 3. Added generators for regrouping, counters, number lines, place-value machines, decompositions, and digit clues. Eighteen tests pass.
+- 2026-09-05: Built the « Construire les nombres » page with nine distinct activities across « Je découvre », « Je m’entraîne », and « Je maîtrise », plus direct hash navigation that preserves the original « Faire 10 » route.
+- 2026-09-05: Applied one stable color to each decimal place throughout the page, supported keyboard entry in Le code, and kept actionable mistake feedback in every answer-based activity.
+- 2026-09-05: Browser-tested all nine games at all three levels, topic switching, keyboard entry, internal-zero exercises, incorrect attempts, successful completion, and the 360 px layout with zero document overflow or console errors.
 
 ## TODO
 
-- None for this iteration.
+- No known implementation tasks for this iteration.
 
 ## Suggestions for the next iteration
 
