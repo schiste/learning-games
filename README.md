@@ -2,7 +2,11 @@
 
 Des jeux tactiles, libres et gratuits pour aider les enfants à comprendre les compléments à 10.
 
-Le premier parcours propose six activités, des manipulations visuelles jusqu’au calcul mental chronométré. Le site fonctionne dans un navigateur, sans compte, sans publicité et sans collecte de données.
+Le premier parcours propose huit activités, des manipulations visuelles jusqu’au calcul mental chronométré. Le site fonctionne dans un navigateur, sans compte, sans publicité et sans collecte de données.
+
+Chaque jeu possède trois niveaux de complexité — **Découverte**, **Entraînement** et **Défi** — qui font évoluer les nombres, les aides visuelles, le nombre de choix, la taille du plateau ou le temps disponible sans changer les règles du jeu.
+
+Les activités disponibles sont La boîte, Les mains, Le panier, La grenouille, Les quilles, Les trous, Les paires et Le chrono. Les jeux chronométrés sont clairement identifiés ; une erreur ne termine jamais une partie et reste affichée avec une piste concrète pour réessayer.
 
 ## Jouer
 
