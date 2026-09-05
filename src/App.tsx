@@ -2,11 +2,15 @@ import { useEffect, useRef, useState } from "react";
 import { beep, fanfare } from "./audio";
 import {
   answerOptions,
+  balanceRound,
   basketRound,
   bowlingRound,
+  cashRound,
   holeQuestion,
   memoryDeck,
+  pathRound,
   randomStart,
+  shareRound,
   timerQuestion,
   type Complexity,
   type MemoryCard,
@@ -19,7 +23,7 @@ declare global {
   }
 }
 
-type GameId = "box" | "hands" | "basket" | "frog" | "bowling" | "holes" | "pairs" | "timer";
+type GameId = "box" | "hands" | "basket" | "frog" | "bowling" | "holes" | "pairs" | "timer" | "cash" | "balance" | "path" | "share";
 type Color = "sky" | "sun" | "berry" | "leaf";
 type GameInfo = { id: GameId; label: string; icon: string; color: Color; timed?: boolean };
 
@@ -37,13 +41,20 @@ const EXPERT_GAMES: GameInfo[] = [
   { id: "timer", label: "Le chrono", icon: "60", color: "berry", timed: true },
 ];
 
+const MASTER_GAMES: GameInfo[] = [
+  { id: "cash", label: "La caisse", icon: "€", color: "berry" },
+  { id: "balance", label: "La balance", icon: "=", color: "leaf" },
+  { id: "path", label: "Le chemin", icon: "±", color: "sky" },
+  { id: "share", label: "Le partage", icon: "•••", color: "sun" },
+];
+
 const LEVELS: { value: Complexity; label: string; short: string }[] = [
   { value: 1, label: "Découverte", short: "Doux" },
   { value: 2, label: "Entraînement", short: "Malin" },
   { value: 3, label: "Défi", short: "Défi" },
 ];
 
-const ALL_GAMES = [...BEGINNER_GAMES, ...EXPERT_GAMES];
+const ALL_GAMES = [...BEGINNER_GAMES, ...EXPERT_GAMES, ...MASTER_GAMES];
 const ALL_NUMBERS = Array.from({ length: 11 }, (_, number) => number);
 
 function useTimeouts() {
@@ -808,6 +819,381 @@ function TimerGame({ complexity }: { complexity: Complexity }) {
   );
 }
 
+function CashGame({ complexity }: { complexity: Complexity }) {
+  const [round, setRound] = useState(() => cashRound(complexity));
+  const [coins, setCoins] = useState<number[]>([]);
+  const [message, setMessage] = useState("");
+  const [wrong, setWrong] = useState(false);
+  const [done, setDone] = useState(false);
+  const current = coins.reduce((sum, coin) => sum + coin, 0);
+
+  const reset = () => {
+    setRound(cashRound(complexity));
+    setCoins([]);
+    setMessage("");
+    setWrong(false);
+    setDone(false);
+  };
+  const addCoin = (coin: number) => {
+    if (current + coin > 10) {
+      beep(200, 0.2);
+      setWrong(true);
+      setMessage("La monnaie ne peut pas dépasser 10. Retire une pièce pour continuer.");
+      return;
+    }
+    beep(520 + coin * 45, 0.08);
+    setCoins((value) => [...value, coin]);
+    setMessage("");
+    setWrong(false);
+  };
+  const removeCoin = (index: number) => {
+    setCoins((value) => value.filter((_, coinIndex) => coinIndex !== index));
+    setMessage("");
+    setWrong(false);
+  };
+  const check = () => {
+    if (current !== round.change) {
+      beep(200, 0.25);
+      setWrong(true);
+      const difference = Math.abs(round.change - current);
+      setMessage(current < round.change
+        ? `Il manque encore ${difference}. Garde tes pièces et complète.`
+        : `Il y a ${difference} de trop. Retire une pièce et réessaie.`);
+      return;
+    }
+    if (round.maxCoins && coins.length > round.maxCoins) {
+      beep(240, 0.2);
+      setWrong(true);
+      setMessage(`Le montant est juste ! Essaie maintenant avec ${round.maxCoins} pièce${round.maxCoins > 1 ? "s" : ""}.`);
+      return;
+    }
+    beep(880, 0.14);
+    setDone(true);
+  };
+
+  if (done) return <Celebration onNext={reset} title="La monnaie est juste !" />;
+
+  return (
+    <section
+      className="game-content cash-game"
+      data-change={round.change}
+      data-total={round.total}
+      data-current={current}
+      data-coins={coins.length}
+    >
+      <p className="instruction">Rends la monnaie sur 10</p>
+      <div className="shop-counter">
+        <div className="purchase" aria-label={`Achats pour ${round.total}`}>
+          {round.prices.map((price, index) => (
+            <div className="shop-item" key={`${price}-${index}`}>
+              <span aria-hidden="true">{index === 0 ? "▲" : "●"}</span>
+              <strong>{price}</strong>
+            </div>
+          ))}
+          {round.prices.length > 1 && <div className="purchase-total">Total <strong>{round.total}</strong></div>}
+        </div>
+        <div className="paid-coin" aria-label="Payé 10"><span>10</span><small>payé</small></div>
+      </div>
+      <div className="cash-equation">10 − {round.prices.length > 1 ? `(${round.prices.join(" + ")})` : round.total} = ?</div>
+      {round.maxCoins && <div className="cash-rule">Avec {round.maxCoins} pièce{round.maxCoins > 1 ? "s" : ""} au plus</div>}
+      <div className={`cash-tray ${wrong ? "is-wrong" : ""}`} aria-label={`Monnaie préparée : ${current}`}>
+        <span className="tray-total">{current}</span>
+        <div className="prepared-coins">
+          {coins.length === 0 && <span className="empty-tray">Choisis des pièces</span>}
+          {coins.map((coin, index) => (
+            <button key={`${coin}-${index}`} className={`coin coin-${coin}`} onClick={() => removeCoin(index)} aria-label={`Retirer la pièce de ${coin}`}>{coin}</button>
+          ))}
+        </div>
+      </div>
+      <div className="coin-bank">
+        {round.denominations.map((coin) => (
+          <button key={coin} className={`coin coin-${coin}`} onClick={() => addCoin(coin)} aria-label={`Ajouter une pièce de ${coin}`}>+ {coin}</button>
+        ))}
+      </div>
+      <PrimaryButton color="berry" onClick={check}>Donner la monnaie</PrimaryButton>
+      <MistakeFeedback message={message} />
+    </section>
+  );
+}
+
+function BalanceGame({ complexity }: { complexity: Complexity }) {
+  const [round, setRound] = useState(() => balanceRound(complexity));
+  const [selected, setSelected] = useState<number[]>([]);
+  const [message, setMessage] = useState("");
+  const [wrong, setWrong] = useState(false);
+  const [done, setDone] = useState(false);
+  const leftTotal = round.leftWeights.reduce((sum, weight) => sum + weight, 0);
+  const selectedTotal = selected.reduce((sum, index) => sum + round.tiles[index], 0);
+  const rightTotal = round.rightBase + selectedTotal;
+  const difference = rightTotal - leftTotal;
+  const angle = Math.max(-8, Math.min(8, difference * 1.8));
+
+  const reset = () => {
+    setRound(balanceRound(complexity));
+    setSelected([]);
+    setMessage("");
+    setWrong(false);
+    setDone(false);
+  };
+  const toggle = (index: number) => {
+    setSelected((value) => value.includes(index) ? value.filter((item) => item !== index) : [...value, index]);
+    setMessage("");
+    setWrong(false);
+    beep(560 + round.tiles[index] * 35, 0.08);
+  };
+  const check = () => {
+    if (difference !== 0) {
+      beep(200, 0.25);
+      setWrong(true);
+      setMessage(difference < 0
+        ? `Le plateau de droite est trop léger : il manque ${Math.abs(difference)}.`
+        : `Le plateau de droite est trop lourd de ${difference}. Retire un poids.`);
+      return;
+    }
+    if (complexity === 3 && selected.length !== 3) {
+      beep(240, 0.2);
+      setWrong(true);
+      setMessage("La balance est juste. Trouve maintenant trois poids qui l’équilibrent.");
+      return;
+    }
+    beep(880, 0.14);
+    setDone(true);
+  };
+
+  if (done) return <Celebration onNext={reset} title="La balance est en équilibre !" />;
+
+  return (
+    <section
+      className="game-content balance-game"
+      data-left={leftTotal}
+      data-right={rightTotal}
+      data-selected={selected.length}
+    >
+      <p className="instruction">Choisis les poids qui équilibrent 10</p>
+      {complexity === 3 && <div className="balance-rule">Utilise exactement trois poids</div>}
+      <div className={`balance-scene ${wrong ? "is-wrong" : ""}`}>
+        <div className="balance-beam" style={{ transform: `rotate(${angle}deg)` }}>
+          <div className="balance-pan pan-left" style={{ transform: `rotate(${-angle}deg)` }}>
+            {round.leftWeights.map((weight, index) => <span className="weight fixed" key={`${weight}-${index}`}>{weight}</span>)}
+          </div>
+          <div className="balance-pan pan-right" style={{ transform: `rotate(${-angle}deg)` }}>
+            {round.rightBase > 0 && <span className="weight fixed">{round.rightBase}</span>}
+            {selected.map((index) => <span className="weight chosen" key={index}>{round.tiles[index]}</span>)}
+          </div>
+        </div>
+        <div className="balance-stand" aria-hidden="true"><span /></div>
+      </div>
+      <div className="weight-bank" aria-label="Poids disponibles">
+        {round.tiles.map((weight, index) => (
+          <button
+            key={index}
+            className={`weight-tile ${selected.includes(index) ? "is-selected" : ""}`}
+            onClick={() => toggle(index)}
+            aria-pressed={selected.includes(index)}
+            aria-label={`${selected.includes(index) ? "Retirer" : "Ajouter"} le poids ${weight}`}
+          >{weight}</button>
+        ))}
+      </div>
+      <PrimaryButton onClick={check}>Vérifier l’équilibre</PrimaryButton>
+      <MistakeFeedback message={message} />
+    </section>
+  );
+}
+
+function PathGame({ complexity }: { complexity: Complexity }) {
+  const [round, setRound] = useState(() => pathRound(complexity));
+  const [history, setHistory] = useState(() => [round.start]);
+  const [message, setMessage] = useState("");
+  const [wrongOperation, setWrongOperation] = useState<number | null>(null);
+  const [done, setDone] = useState(false);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const position = history[history.length - 1];
+  const moves = history.length - 1;
+
+  useEffect(() => {
+    trackRef.current?.querySelector(".is-current")?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+  }, [position]);
+
+  const reset = () => {
+    const nextRound = pathRound(complexity);
+    setRound(nextRound);
+    setHistory([nextRound.start]);
+    setMessage("");
+    setWrongOperation(null);
+    setDone(false);
+  };
+  const move = (operation: number) => {
+    if (moves >= round.maxMoves) {
+      beep(200, 0.25);
+      setWrongOperation(operation);
+      setMessage("Tous les coups sont utilisés. Reviens d’un pas pour essayer autrement.");
+      return;
+    }
+    const next = position + operation;
+    if (next < 0 || next > round.maxPosition) {
+      beep(200, 0.25);
+      setWrongOperation(operation);
+      setMessage(next < 0 ? "Ce chemin passerait avant 0." : `Ce chemin dépasserait ${round.maxPosition}.`);
+      return;
+    }
+    beep(operation > 0 ? 650 : 360, 0.1);
+    setHistory((value) => [...value, next]);
+    setWrongOperation(null);
+    if (next === 10) {
+      setDone(true);
+      return;
+    }
+    if (moves + 1 === round.maxMoves) setMessage("Tu n’es pas encore sur 10. Reviens d’un pas et change de chemin.");
+    else setMessage("");
+  };
+  const undo = () => {
+    setHistory((value) => value.length > 1 ? value.slice(0, -1) : value);
+    setMessage("");
+    setWrongOperation(null);
+  };
+
+  if (done) return <Celebration onNext={reset} title="Tu as trouvé le chemin de 10 !" />;
+
+  return (
+    <section
+      className="game-content path-game"
+      data-position={position}
+      data-moves={moves}
+      data-max-moves={round.maxMoves}
+      data-max-position={round.maxPosition}
+    >
+      <p className="instruction">Atteins 10 avec les bons déplacements</p>
+      <div className="path-track" ref={trackRef} aria-label={`Position ${position}, objectif 10`}>
+        {Array.from({ length: round.maxPosition + 1 }, (_, number) => (
+          <span
+            key={number}
+            className={`path-space ${number === position ? "is-current" : ""} ${number === 10 ? "is-goal" : ""} ${history.includes(number) ? "is-visited" : ""}`}
+          >
+            {number === position && <i aria-hidden="true">◆</i>}
+            <strong>{number}</strong>
+          </span>
+        ))}
+      </div>
+      <div className="path-status"><span>Départ <strong>{round.start}</strong></span><span>Coups <strong>{moves}/{round.maxMoves}</strong></span></div>
+      <div className="operation-bank">
+        {round.operations.map((operation) => (
+          <button
+            key={operation}
+            className={wrongOperation === operation ? "is-wrong" : ""}
+            onClick={() => move(operation)}
+            aria-label={`Déplacement ${operation > 0 ? "plus" : "moins"} ${Math.abs(operation)}`}
+          >{operation > 0 ? "+" : "−"}{Math.abs(operation)}</button>
+        ))}
+      </div>
+      <button className="undo-button" onClick={undo} disabled={history.length === 1}>↶ Revenir d’un pas</button>
+      <MistakeFeedback message={message} />
+    </section>
+  );
+}
+
+const SHARE_NAMES = ["Rose", "Bleu", "Vert"];
+
+function ShareGame({ complexity }: { complexity: Complexity }) {
+  const [round, setRound] = useState(() => shareRound(complexity));
+  const [counts, setCounts] = useState(() => round.targets.map(() => 0));
+  const [message, setMessage] = useState("");
+  const [wrong, setWrong] = useState<number[]>([]);
+  const [done, setDone] = useState(false);
+  const remaining = 10 - counts.reduce((sum, count) => sum + count, 0);
+
+  const reset = () => {
+    const nextRound = shareRound(complexity);
+    setRound(nextRound);
+    setCounts(nextRound.targets.map(() => 0));
+    setMessage("");
+    setWrong([]);
+    setDone(false);
+  };
+  const add = (index: number) => {
+    if (remaining === 0) {
+      beep(200, 0.2);
+      setMessage("Les 10 trésors sont déjà placés. Retire-en un pour changer le partage.");
+      return;
+    }
+    setCounts((value) => value.map((count, countIndex) => countIndex === index ? count + 1 : count));
+    setMessage("");
+    setWrong([]);
+    beep(520 + index * 80, 0.08);
+  };
+  const remove = (index: number) => {
+    setCounts((value) => value.map((count, countIndex) => countIndex === index ? Math.max(0, count - 1) : count));
+    setMessage("");
+    setWrong([]);
+  };
+  const check = () => {
+    if (remaining > 0) {
+      beep(200, 0.22);
+      setMessage(`Place encore ${remaining} trésor${remaining > 1 ? "s" : ""}.`);
+      return;
+    }
+    const mismatches = counts.flatMap((count, index) => count === round.targets[index] ? [] : [index]);
+    if (mismatches.length === 0) {
+      beep(880, 0.14);
+      setDone(true);
+      return;
+    }
+    beep(200, 0.25);
+    if (complexity < 3) {
+      const visibleMismatch = mismatches.find((index) => round.visibleTargets[index]) ?? mismatches[0];
+      const delta = counts[visibleMismatch] - round.targets[visibleMismatch];
+      setWrong(mismatches);
+      setMessage(`${SHARE_NAMES[visibleMismatch]} a ${Math.abs(delta)} trésor${Math.abs(delta) > 1 ? "s" : ""} ${delta > 0 ? "de trop" : "en moins"}.`);
+      return;
+    }
+    const failed = round.relations.find((relation) => counts[relation.left] !== counts[relation.right] + relation.offset)!;
+    setWrong([failed.left, failed.right]);
+    setMessage(failed.offset === 0
+      ? `${SHARE_NAMES[failed.left]} et ${SHARE_NAMES[failed.right]} doivent avoir le même nombre.`
+      : `${SHARE_NAMES[failed.left]} doit avoir ${failed.offset} de plus que ${SHARE_NAMES[failed.right]}.`);
+  };
+
+  if (done) return <Celebration onNext={reset} title="Les 10 trésors sont bien partagés !" />;
+
+  return (
+    <section
+      className="game-content share-game"
+      data-counts={counts.join(",")}
+      data-remaining={remaining}
+      data-visible-targets={round.targets.map((target, index) => round.visibleTargets[index] ? target : "?").join(",")}
+    >
+      <p className="instruction">Partage exactement 10 trésors</p>
+      {round.relations.length > 0 && (
+        <div className="share-clues">
+          {round.relations.map((relation, index) => (
+            <span key={index}>
+              {SHARE_NAMES[relation.left]} = {SHARE_NAMES[relation.right]}{relation.offset > 0 ? ` + ${relation.offset}` : ""}
+            </span>
+          ))}
+        </div>
+      )}
+      <div className="treasure-pile" aria-label={`${remaining} trésors à placer`}>
+        <strong>{remaining}</strong>
+        <div>{Array.from({ length: remaining }, (_, index) => <i key={index} />)}</div>
+      </div>
+      <div className={`share-chests chests-${counts.length}`}>
+        {counts.map((count, index) => (
+          <div className={`share-chest chest-${index} ${wrong.includes(index) ? "is-wrong" : ""}`} key={index}>
+            <button className="chest-drop" onClick={() => add(index)} aria-label={`Ajouter un trésor au coffre ${SHARE_NAMES[index]}`}>
+              <span className="chest-name">{SHARE_NAMES[index]}</span>
+              <strong>{count}</strong>
+              {complexity < 3 && <span className="chest-target">Objectif {round.visibleTargets[index] ? round.targets[index] : "?"}</span>}
+              <span className="chest-gems" aria-hidden="true">{Array.from({ length: count }, (_, gem) => <i key={gem} />)}</span>
+            </button>
+            <button className="chest-remove" onClick={() => remove(index)} disabled={count === 0} aria-label={`Retirer un trésor du coffre ${SHARE_NAMES[index]}`}>− Retirer</button>
+          </div>
+        ))}
+      </div>
+      <PrimaryButton color="sun" onClick={check}>Vérifier le partage</PrimaryButton>
+      <MistakeFeedback message={message} />
+    </section>
+  );
+}
+
 function GameNav({ game, onSelect }: { game: GameId; onSelect: (game: GameId) => void }) {
   const group = (label: string, games: GameInfo[]) => (
     <div className="nav-group">
@@ -827,7 +1213,7 @@ function GameNav({ game, onSelect }: { game: GameId; onSelect: (game: GameId) =>
       </div>
     </div>
   );
-  return <nav className="game-nav" aria-label="Choisir un jeu">{group("Je découvre", BEGINNER_GAMES)}{group("Je m’entraîne", EXPERT_GAMES)}</nav>;
+  return <nav className="game-nav" aria-label="Choisir un jeu">{group("Je découvre", BEGINNER_GAMES)}{group("Je m’entraîne", EXPERT_GAMES)}{group("Je maîtrise", MASTER_GAMES)}</nav>;
 }
 
 export default function App() {
@@ -841,6 +1227,10 @@ export default function App() {
     holes: 1,
     pairs: 1,
     timer: 1,
+    cash: 1,
+    balance: 1,
+    path: 1,
+    share: 1,
   });
   const selected = ALL_GAMES.find((item) => item.id === game)!;
   const complexity = complexities[game];
@@ -851,6 +1241,10 @@ export default function App() {
       const frogPond = stage?.querySelector<HTMLElement>(".frog-pond");
       const bowlingLane = stage?.querySelector<HTMLElement>(".bowling-lane");
       const timerFill = stage?.querySelector<HTMLElement>(".timer-background-fill");
+      const cashGame = stage?.querySelector<HTMLElement>(".cash-game");
+      const balanceGame = stage?.querySelector<HTMLElement>(".balance-game");
+      const pathGame = stage?.querySelector<HTMLElement>(".path-game");
+      const shareGame = stage?.querySelector<HTMLElement>(".share-game");
       const visibleButtons = [...(stage?.querySelectorAll("button:not([disabled])") ?? [])]
         .map((button) => button.getAttribute("aria-label") || button.textContent?.trim())
         .filter(Boolean);
@@ -859,7 +1253,7 @@ export default function App() {
         game,
         complexity,
         instruction: stage?.querySelector(".instruction")?.textContent?.trim() ?? null,
-        equation: stage?.querySelector(".equation, .bowling-equation")?.textContent?.trim() ?? null,
+        equation: stage?.querySelector(".equation, .bowling-equation, .cash-equation")?.textContent?.trim() ?? null,
         feedback: stage?.querySelector(".mistake-feedback.is-visible")?.textContent?.trim() ?? null,
         scene: frogPond
           ? { start: Number(frogPond.dataset.start), position: Number(frogPond.dataset.position), destination: 10 }
@@ -871,7 +1265,21 @@ export default function App() {
                   time: Number(stage?.querySelector(".timer-status strong")?.textContent ?? 60),
                   score: Number(stage?.querySelectorAll(".timer-status strong")[1]?.textContent ?? 0),
                 }
-              : null,
+              : cashGame
+                ? { purchase: Number(cashGame.dataset.total), change: Number(cashGame.dataset.change), current: Number(cashGame.dataset.current), coins: Number(cashGame.dataset.coins) }
+                : balanceGame
+                  ? { left: Number(balanceGame.dataset.left), right: Number(balanceGame.dataset.right), selected: Number(balanceGame.dataset.selected) }
+                  : pathGame
+                    ? { position: Number(pathGame.dataset.position), moves: Number(pathGame.dataset.moves), maxMoves: Number(pathGame.dataset.maxMoves), maxPosition: Number(pathGame.dataset.maxPosition), goal: 10 }
+                    : shareGame
+                      ? {
+                          counts: shareGame.dataset.counts?.split(",").map(Number),
+                          remaining: Number(shareGame.dataset.remaining),
+                          visibleTargets: shareGame.dataset.visibleTargets,
+                          clues: stage?.querySelector(".share-clues")?.textContent?.trim() ?? null,
+                          total: 10,
+                        }
+                      : null,
         availableActions: visibleButtons,
       });
     };
@@ -897,11 +1305,6 @@ export default function App() {
       </header>
 
       <main>
-        <section className="intro">
-          <p className="eyebrow">Les compléments à 10</p>
-          <h1>À toi de jouer !</h1>
-          <p>Choisis une activité et découvre les nombres avec tes mains, tes yeux et tes idées.</p>
-        </section>
         <GameNav game={game} onSelect={setGame} />
         <section className={`game-stage accent-${selected.color}`} aria-label={selected.label}>
           <div className="stage-title">
@@ -920,6 +1323,10 @@ export default function App() {
             {game === "holes" && <HolesGame complexity={complexity} />}
             {game === "pairs" && <PairsGame complexity={complexity} />}
             {game === "timer" && <TimerGame complexity={complexity} />}
+            {game === "cash" && <CashGame complexity={complexity} />}
+            {game === "balance" && <BalanceGame complexity={complexity} />}
+            {game === "path" && <PathGame complexity={complexity} />}
+            {game === "share" && <ShareGame complexity={complexity} />}
           </div>
         </section>
       </main>

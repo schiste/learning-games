@@ -2,6 +2,8 @@ Original prompt: Craft games 2 (Les quilles) and 3 (La grenouille) properly; add
 
 Follow-up prompt: Give timed games a progressively filling background, support keyboard number entry, keep every timer at 60 seconds, and increase timer complexity through two-term then three-term equations with level 3 inputs restricted to 0–5.
 
+Current prompt: Implement four new expert games (La caisse, La balance, Le chemin, Le partage) and remove the introductory heading/copy block for now.
+
 ## Progress
 
 - 2026-09-05: Defined three shared complexity grades: Découverte, Entraînement, Défi.
@@ -15,6 +17,10 @@ Follow-up prompt: Give timed games a progressively filling background, support k
 - 2026-09-05: Added and tested timer-question generation: level 1 uses two terms, levels 2–3 use three terms with varied missing positions, and level 3 constrains every value to 0–5.
 - 2026-09-05: Added buffered keyboard input to numeric choices and pads, including unambiguous two-key entry for 10. All timer levels now last 60 seconds and elapsed time fills the stage background upward.
 - 2026-09-05: Browser regression passes across all three timer levels: keyboard answers, fixed 60-second duration, half/full background fill, 0–5 challenge inputs, mobile layout, and console checks.
+- 2026-09-05: Added tested round generators for change-making, subset-sum balancing, bounded addition/subtraction paths, and ten-object sharing constraints. Twelve logic tests pass.
+- 2026-09-05: Built La caisse, La balance, Le chemin, and Le partage as four distinct tap-first expert mechanics, each with three complexity levels and persistent, actionable mistake feedback.
+- 2026-09-05: Removed the introductory copy block and added a compact third navigation row, « Je maîtrise », directly below the site header.
+- 2026-09-05: Browser-tested every new game at levels 1, 2, and 3, including incorrect attempts, undo/removal controls, successful completion, semantic text state, and the 360 px layout with zero overflow or console errors.
 
 ## TODO
 
@@ -24,3 +30,4 @@ Follow-up prompt: Give timed games a progressively filling background, support k
 
 - Add optional spoken instructions while keeping every cue available visually.
 - Consider a locally stored child-friendly progress trail across activities.
+- Consider extracting the growing game registry and individual games from `App.tsx` before the next large batch of activities.
