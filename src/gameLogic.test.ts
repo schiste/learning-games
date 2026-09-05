@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { answerOptions, basketRound, bowlingRound, holeQuestion, memoryDeck, randomStart, type Complexity } from "./gameLogic";
+import { answerOptions, basketRound, bowlingRound, holeQuestion, memoryDeck, randomStart, timerQuestion, type Complexity } from "./gameLogic";
 
 describe("game rounds", () => {
   it("always includes the answer once in answer options", () => {
@@ -61,6 +61,23 @@ describe("game rounds", () => {
         expect(round.knocked + round.standing).toBe(10);
         expect(round.options).toContain(round.standing);
         expect(round.options).toHaveLength(complexity + 1);
+      }
+    }
+  });
+
+  it("keeps timed games at 10 while scaling the expression", () => {
+    for (const complexity of [1, 2, 3] as const) {
+      for (let i = 0; i < 100; i += 1) {
+        const question = timerQuestion(complexity);
+        expect(question.terms.reduce((sum, term) => sum + term, 0)).toBe(10);
+        expect(question.answer).toBe(question.terms[question.missingIndex]);
+        expect(question.inputValues).toContain(question.answer);
+        expect(question.text).toContain("?");
+        expect(question.terms).toHaveLength(complexity === 1 ? 2 : 3);
+        if (complexity === 3) {
+          expect(question.terms.every((term) => term >= 0 && term <= 5)).toBe(true);
+          expect(question.inputValues).toEqual([0, 1, 2, 3, 4, 5]);
+        }
       }
     }
   });

@@ -1,5 +1,12 @@
 export type HoleQuestion = { text: string; answer: number };
 export type Complexity = 1 | 2 | 3;
+export type TimerQuestion = {
+  text: string;
+  answer: number;
+  terms: number[];
+  missingIndex: number;
+  inputValues: number[];
+};
 
 export function randomInt(min: number, max: number): number {
   return min + Math.floor(Math.random() * (max - min + 1));
@@ -65,5 +72,44 @@ export function bowlingRound(complexity: Complexity) {
     knocked,
     standing,
     options: answerOptions(standing, complexity + 1),
+  };
+}
+
+export function timerQuestion(complexity: Complexity): TimerQuestion {
+  const inputValues = Array.from({ length: complexity === 3 ? 6 : 11 }, (_, index) => index);
+  if (complexity === 1) {
+    const first = randomInt(0, 10);
+    return {
+      text: `${first} + ? = 10`,
+      answer: 10 - first,
+      terms: [first, 10 - first],
+      missingIndex: 1,
+      inputValues,
+    };
+  }
+
+  let terms: number[];
+  if (complexity === 2) {
+    const first = randomInt(1, 8);
+    const second = randomInt(1, 9 - first);
+    terms = [first, second, 10 - first - second];
+  } else {
+    const triples: number[][] = [];
+    for (let first = 0; first <= 5; first += 1) {
+      for (let second = 0; second <= 5; second += 1) {
+        const third = 10 - first - second;
+        if (third >= 0 && third <= 5) triples.push([first, second, third]);
+      }
+    }
+    terms = triples[randomInt(0, triples.length - 1)];
+  }
+
+  const missingIndex = randomInt(0, 2);
+  return {
+    text: `${terms.map((term, index) => index === missingIndex ? "?" : term).join(" + ")} = 10`,
+    answer: terms[missingIndex],
+    terms,
+    missingIndex,
+    inputValues,
   };
 }

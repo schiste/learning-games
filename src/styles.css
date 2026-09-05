@@ -116,7 +116,7 @@ main { max-width: 980px; margin: 0 auto; }
 .complexity-picker button.is-active { background: var(--accent); border-color: var(--ink); color: white; box-shadow: 0 3px 0 color-mix(in srgb, var(--accent) 55%, var(--ink)); }
 .complexity-picker button.is-active > span { background: white; color: var(--ink); }
 .accent-sun .stage-name > span:first-child, .accent-sun .complexity-picker button.is-active { color: var(--ink); }
-.stage-body { min-height: 470px; padding: 34px 28px 40px; display: grid; place-items: center; animation: game-in .3s ease-out both; }
+.stage-body { position: relative; min-height: 470px; padding: 34px 28px 40px; display: grid; place-items: center; overflow: hidden; animation: game-in .3s ease-out both; }
 .game-content, .question-panel { width: 100%; text-align: center; }
 .instruction { color: #5f5046; font-size: clamp(19px, 2.6vw, 24px); margin: 0 0 23px; }
 
@@ -134,6 +134,9 @@ button.ten-cell:not(:disabled):hover { transform: scale(.94); background: #fffdf
 .mistake-feedback > span:first-child { width: 23px; height: 23px; display: grid; place-items: center; border-radius: 50%; background: transparent; font-size: 18px; font-weight: 700; }
 .mistake-feedback.is-visible { border-color: #c9364b; background: #ffe7eb; color: #8f2031; animation: feedback-in .2s ease-out both; }
 .mistake-feedback.is-visible > span:first-child { background: #c9364b; color: white; }
+.keyboard-hint { min-height: 27px; margin: 11px auto 0; display: flex; justify-content: center; align-items: center; gap: 7px; color: #88766a; font-size: 13px; }
+.keyboard-hint > span { font-size: 17px; }
+.keyboard-hint kbd { min-width: 27px; min-height: 27px; padding: 3px 7px; display: inline-grid; place-items: center; border: 2px solid var(--ink); border-radius: 7px; background: white; color: var(--ink); font: inherit; font-weight: 700; box-shadow: 0 2px 0 var(--soft); }
 
 .choice-row, .basket-row { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; }
 .number-choice { width: 126px; min-height: 146px; border-radius: 22px; border: 3px solid var(--ink); background: white; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 5px 0 var(--soft); }
@@ -237,6 +240,10 @@ button.ten-cell:not(:disabled):hover { transform: scale(.94); background: #fffdf
 .timer-status { display: flex; justify-content: center; gap: 16px; margin-bottom: 8px; }
 .timer-status span { min-width: 120px; border-radius: 999px; padding: 9px 16px; background: var(--soft); color: #78675a; }
 .timer-status strong { color: var(--ink); margin-left: 5px; }
+.timer-background-fill { position: absolute; z-index: 0; right: 0; bottom: 0; left: 0; height: 0; background: repeating-linear-gradient(-12deg, rgba(232,84,124,.11) 0 22px, rgba(255,200,61,.12) 22px 44px), color-mix(in srgb, var(--berry) 10%, white); transition: height 1s linear; pointer-events: none; }
+.timer-background-fill::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 5px; background: color-mix(in srgb, var(--berry) 58%, white); box-shadow: 0 -4px 12px rgba(232,84,124,.2); }
+.timer-foreground { position: relative; z-index: 1; }
+.timer-foreground .equation { font-size: clamp(34px, 7vw, 60px); white-space: nowrap; }
 .is-wrong { border-color: #c9364b !important; background: #ffe7eb !important; color: #8f2031 !important; animation: shake .38s ease-in-out; }
 
 footer { max-width: 980px; margin: 38px auto 0; display: flex; justify-content: space-between; gap: 20px; color: #806f61; font-size: 14px; }

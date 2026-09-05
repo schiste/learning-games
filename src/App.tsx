@@ -6,8 +6,8 @@ import {
   bowlingRound,
   holeQuestion,
   memoryDeck,
-  randomInt,
   randomStart,
+  timerQuestion,
   type Complexity,
   type MemoryCard,
 } from "./gameLogic";
@@ -44,6 +44,7 @@ const LEVELS: { value: Complexity; label: string; short: string }[] = [
 ];
 
 const ALL_GAMES = [...BEGINNER_GAMES, ...EXPERT_GAMES];
+const ALL_NUMBERS = Array.from({ length: 11 }, (_, number) => number);
 
 function useTimeouts() {
   const timers = useRef<number[]>([]);
@@ -52,6 +53,92 @@ function useTimeouts() {
     const timer = window.setTimeout(callback, delay);
     timers.current.push(timer);
   };
+}
+
+function useKeyboardNumbers(onPick: (number: number) => void, allowed: number[], enabled = true) {
+  const [typed, setTyped] = useState("");
+  const pickRef = useRef(onPick);
+  const allowedKey = allowed.join(",");
+
+  useEffect(() => {
+    pickRef.current = onPick;
+  }, [onPick]);
+
+  useEffect(() => {
+    if (!enabled) return;
+    const allowedValues = allowedKey.split(",").filter(Boolean).map(Number);
+    let buffer = "";
+    let timer: number | undefined;
+    const reset = () => {
+      buffer = "";
+      setTyped("");
+      if (timer) window.clearTimeout(timer);
+      timer = undefined;
+    };
+    const commit = () => {
+      const value = Number(buffer);
+      if (buffer && allowedValues.includes(value)) {
+        reset();
+        pickRef.current(value);
+      } else {
+        reset();
+      }
+    };
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.metaKey || event.ctrlKey || event.altKey || event.repeat) return;
+      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return;
+      if (event.key === "Escape" || event.key === "Backspace") {
+        reset();
+        return;
+      }
+      if (event.key === "Enter" && buffer) {
+        event.preventDefault();
+        commit();
+        return;
+      }
+      if (!/^\d$/.test(event.key)) return;
+
+      event.preventDefault();
+      let candidate = `${buffer}${event.key}`;
+      let matches = allowedValues.filter((value) => String(value).startsWith(candidate));
+      if (!matches.length) {
+        candidate = event.key;
+        matches = allowedValues.filter((value) => String(value).startsWith(candidate));
+      }
+      if (!matches.length) {
+        reset();
+        return;
+      }
+
+      buffer = candidate;
+      setTyped(candidate);
+      if (timer) window.clearTimeout(timer);
+      const exact = allowedValues.includes(Number(candidate));
+      const hasLongerMatch = matches.some((value) => String(value).length > candidate.length);
+      if (exact && !hasLongerMatch) {
+        commit();
+      } else {
+        timer = window.setTimeout(commit, 450);
+      }
+    };
+
+    window.addEventListener("keydown", handleKey);
+    return () => {
+      window.removeEventListener("keydown", handleKey);
+      if (timer) window.clearTimeout(timer);
+    };
+  }, [allowedKey, enabled]);
+
+  return enabled ? typed : "";
+}
+
+function KeyboardHint({ typed }: { typed: string }) {
+  return (
+    <div className="keyboard-hint" aria-live="polite">
+      <span aria-hidden="true">⌨</span>
+      {typed ? <>Saisie <kbd>{typed}</kbd></> : "Tu peux aussi taper le nombre"}
+    </div>
+  );
 }
 
 function PrimaryButton({ children, onClick, color = "leaf" }: {
@@ -131,6 +218,7 @@ function Question({ answer, onCorrect, complexity, prompt = "Combien en as-tu aj
       setMessage("");
     }, 1100);
   };
+  const typed = useKeyboardNumbers(pick, options);
 
   return (
     <section className="question-panel">
@@ -152,6 +240,7 @@ function Question({ answer, onCorrect, complexity, prompt = "Combien en as-tu aj
           </button>
         ))}
       </div>
+      <KeyboardHint typed={typed} />
       <MistakeFeedback message={message} />
     </section>
   );
@@ -434,6 +523,7 @@ function BowlingGame({ complexity }: { complexity: Complexity }) {
       setMessage("");
     }, 1200);
   };
+  const typed = useKeyboardNumbers(pick, round.options, phase === "answer");
 
   if (phase === "done") return <Celebration onNext={reset} title="Bien joué, joli lancer !" />;
 
@@ -469,6 +559,7 @@ function BowlingGame({ complexity }: { complexity: Complexity }) {
               >{number}</button>
             ))}
           </div>
+          <KeyboardHint typed={typed} />
         </>
       )}
       <MistakeFeedback message={message} />
@@ -476,17 +567,21 @@ function BowlingGame({ complexity }: { complexity: Complexity }) {
   );
 }
 
-function NumberPad({ onPick, wrong }: { onPick: (number: number) => void; wrong: number | null }) {
+function NumberPad({ onPick, wrong, values = ALL_NUMBERS }: { onPick: (number: number) => void; wrong: number | null; values?: number[] }) {
+  const typed = useKeyboardNumbers(onPick, values);
   return (
-    <div className="number-pad">
-      {Array.from({ length: 11 }, (_, number) => (
-        <button
-          key={number}
-          className={wrong === number ? "is-wrong" : ""}
-          onClick={() => onPick(number)}
-        >{number}</button>
-      ))}
-    </div>
+    <>
+      <div className="number-pad">
+        {values.map((number) => (
+          <button
+            key={number}
+            className={wrong === number ? "is-wrong" : ""}
+            onClick={() => onPick(number)}
+          >{number}</button>
+        ))}
+      </div>
+      <KeyboardHint typed={typed} />
+    </>
   );
 }
 
@@ -610,10 +705,10 @@ function PairsGame({ complexity }: { complexity: Complexity }) {
 }
 
 function TimerGame({ complexity }: { complexity: Complexity }) {
-  const duration = complexity === 1 ? 90 : complexity === 2 ? 60 : 45;
+  const duration = 60;
   const [state, setState] = useState<"idle" | "running" | "ended">("idle");
   const [time, setTime] = useState(duration);
-  const [number, setNumber] = useState(() => randomInt(complexity === 1 ? 5 : 0, complexity === 1 ? 9 : 10));
+  const [question, setQuestion] = useState(() => timerQuestion(complexity));
   const [score, setScore] = useState(0);
   const [best, setBest] = useState(() => Number(window.localStorage.getItem(`learning-games-best-${complexity}`) ?? 0));
   const [wrong, setWrong] = useState<number | null>(null);
@@ -663,15 +758,15 @@ function TimerGame({ complexity }: { complexity: Complexity }) {
   const start = () => {
     setScore(0);
     setTime(duration);
-    setNumber(randomInt(complexity === 1 ? 5 : 0, complexity === 1 ? 9 : 10));
+    setQuestion(timerQuestion(complexity));
     setState("running");
   };
 
   const pick = (answer: number) => {
-    if (answer === 10 - number) {
+    if (answer === question.answer) {
       beep(880, 0.1);
       setScore((value) => value + 1);
-      setNumber(randomInt(complexity === 1 ? 5 : 0, complexity === 1 ? 9 : 10));
+      setQuestion(timerQuestion(complexity));
       return;
     }
     beep(200, 0.25);
@@ -682,26 +777,34 @@ function TimerGame({ complexity }: { complexity: Complexity }) {
       setMessage("");
     }, 900);
   };
+  const progress = state === "ended" ? 1 : Math.max(0, Math.min(1, (duration - time) / duration));
+  const timeFill = <div className="timer-background-fill" data-progress={progress} style={{ height: `${progress * 100}%` }} aria-hidden="true" />;
 
   if (state !== "running") {
     return (
-      <section className="timer-intro">
-        <span className="timer-icon" aria-hidden="true">{duration}</span>
-        {state === "ended" && <h2>{score} bonne{score > 1 ? "s" : ""} réponse{score > 1 ? "s" : ""}</h2>}
-        <p>Combien de compléments trouveras-tu avant la fin du temps ?</p>
-        {best > 0 && <div className="record">Ton record · {best}</div>}
-        <PrimaryButton color="berry" onClick={start}>{state === "ended" ? "Rejouer" : "C’est parti !"}</PrimaryButton>
-      </section>
+      <>
+        {timeFill}
+        <section className="timer-intro timer-foreground">
+          <span className="timer-icon" aria-hidden="true">60</span>
+          {state === "ended" && <h2>{score} bonne{score > 1 ? "s" : ""} réponse{score > 1 ? "s" : ""}</h2>}
+          <p>Combien de compléments trouveras-tu en une minute ?</p>
+          {best > 0 && <div className="record">Ton record · {best}</div>}
+          <PrimaryButton color="berry" onClick={start}>{state === "ended" ? "Rejouer" : "C’est parti !"}</PrimaryButton>
+        </section>
+      </>
     );
   }
 
   return (
-    <section className="game-content">
-      <div className="timer-status"><span>Temps <strong>{time}</strong></span><span>Score <strong>{score}</strong></span></div>
-      <div className="equation">{number} + ? = 10</div>
-      <NumberPad onPick={pick} wrong={wrong} />
-      <MistakeFeedback message={message} />
-    </section>
+    <>
+      {timeFill}
+      <section className="game-content timer-foreground">
+        <div className="timer-status"><span>Temps <strong>{time}</strong></span><span>Score <strong>{score}</strong></span></div>
+        <div className="equation">{question.text}</div>
+        <NumberPad onPick={pick} wrong={wrong} values={question.inputValues} />
+        <MistakeFeedback message={message} />
+      </section>
+    </>
   );
 }
 
@@ -747,6 +850,7 @@ export default function App() {
       const stage = document.querySelector(".game-stage");
       const frogPond = stage?.querySelector<HTMLElement>(".frog-pond");
       const bowlingLane = stage?.querySelector<HTMLElement>(".bowling-lane");
+      const timerFill = stage?.querySelector<HTMLElement>(".timer-background-fill");
       const visibleButtons = [...(stage?.querySelectorAll("button:not([disabled])") ?? [])]
         .map((button) => button.getAttribute("aria-label") || button.textContent?.trim())
         .filter(Boolean);
@@ -761,7 +865,13 @@ export default function App() {
           ? { start: Number(frogPond.dataset.start), position: Number(frogPond.dataset.position), destination: 10 }
           : bowlingLane
             ? { phase: bowlingLane.dataset.phase, standing: Number(bowlingLane.dataset.standing), knocked: Number(bowlingLane.dataset.knocked) }
-            : null,
+            : timerFill
+              ? {
+                  progress: Number(timerFill.dataset.progress),
+                  time: Number(stage?.querySelector(".timer-status strong")?.textContent ?? 60),
+                  score: Number(stage?.querySelectorAll(".timer-status strong")[1]?.textContent ?? 0),
+                }
+              : null,
         availableActions: visibleButtons,
       });
     };
