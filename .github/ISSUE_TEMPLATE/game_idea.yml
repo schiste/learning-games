@@ -1,0 +1,18 @@
+name: Proposer un jeu
+description: Une idée pédagogique pour enrichir le projet.
+title: "[Jeu] "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: skill
+    attributes:
+      label: Quel apprentissage travaille ce jeu ?
+    validations:
+      required: true
+  - type: textarea
+    id: interaction
+    attributes:
+      label: Comment l’enfant joue-t-il ?
+      description: Décrivez les gestes, les retours et la progression sans supposer que l’enfant sait lire.
+    validations:
+      required: true

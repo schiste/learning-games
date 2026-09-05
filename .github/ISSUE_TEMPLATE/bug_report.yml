@@ -1,0 +1,24 @@
+name: Signaler un problème
+description: Un jeu ou le site ne fonctionne pas comme prévu.
+title: "[Bug] "
+labels: [bug]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Que se passe-t-il ?
+      description: Décrivez le résultat observé et le résultat attendu.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Comment reproduire le problème ?
+      placeholder: Jeu choisi, actions réalisées…
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Appareil et navigateur
+      placeholder: iPad, Safari 18
