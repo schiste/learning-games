@@ -4,7 +4,11 @@ export type Place = { name: string; short: string; value: number; color: string 
 export type CounterRound = { start: number; operation: number; answer: number; options: number[] };
 export type LineRound = { values: number[]; missingIndex: number; answer: number; options: number[] };
 export type MachineRound = { start: number; target: number; operations: number[]; maxMoves: number };
-export type DetectiveCard = { text: string; correct: boolean };
+export type DetectiveCard = {
+  kind: "places" | "products";
+  digits: number[];
+  correct: boolean;
+};
 export type DetectiveRound = { number: number; cards: DetectiveCard[] };
 
 export const PLACES: Place[] = [
@@ -112,18 +116,15 @@ export function machineRound(complexity: Complexity): MachineRound {
 
 export function detectiveRound(complexity: Complexity): DetectiveRound {
   const number = decimalNumber(complexity);
-  const places = activePlaces(complexity);
   const digits = placeDigits(number, complexity);
-  const parts = expandedParts(number, complexity);
-  const wrongIndex = randomInt(0, parts.length - 1);
-  const wrongParts = parts.map((part, index) => index === wrongIndex ? part + places[index].value : part);
-  const placeText = digits.map((digit, index) => `${digit} ${places[index].short}`).join(" · ");
+  const wrongIndex = randomInt(0, digits.length - 1);
+  const wrongDigits = digits.map((digit, index) => index === wrongIndex ? (digit + 1) % 10 : digit);
   return {
     number,
     cards: shuffle([
-      { text: `${formatNumber(number)} = ${parts.map(formatNumber).join(" + ")}`, correct: true },
-      { text: `${formatNumber(number)} = ${placeText}`, correct: true },
-      { text: `${formatNumber(number)} = ${wrongParts.map(formatNumber).join(" + ")}`, correct: false },
+      { kind: "places", digits: [...digits], correct: true },
+      { kind: "products", digits: [...digits], correct: true },
+      { kind: "places", digits: wrongDigits, correct: false },
     ]),
   };
 }

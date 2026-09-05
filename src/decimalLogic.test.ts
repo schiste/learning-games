@@ -74,8 +74,13 @@ describe("decimal-system rounds", () => {
   it("creates two true detective cards and one false card", () => {
     for (const complexity of [1, 2, 3] as const) {
       const round = detectiveRound(complexity);
+      const places = activePlaces(complexity);
       expect(round.cards.filter((card) => card.correct)).toHaveLength(2);
       expect(round.cards.filter((card) => !card.correct)).toHaveLength(1);
+      for (const card of round.cards) {
+        const represented = card.digits.reduce((sum, digit, index) => sum + digit * places[index].value, 0);
+        expect(represented === round.number).toBe(card.correct);
+      }
     }
   });
 });

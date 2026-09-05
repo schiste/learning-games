@@ -6,6 +6,8 @@ Current prompt: Implement four new expert games (La caisse, La balance, Le chemi
 
 New prompt: Add a second page with the same « Je découvre / Je m’entraîne / Je maîtrise » progression so children understand the decimal place-value system from tens through numbers such as 1,093.
 
+Current refinement prompt: Re-review the decimal games critically and improve the activities that are not intuitive enough for a child discovering place value.
+
 ## Progress
 
 - 2026-09-05: Defined three shared complexity grades: Découverte, Entraînement, Défi.
@@ -27,6 +29,10 @@ New prompt: Add a second page with the same « Je découvre / Je m’entraîne /
 - 2026-09-05: Built the « Construire les nombres » page with nine distinct activities across « Je découvre », « Je m’entraîne », and « Je maîtrise », plus direct hash navigation that preserves the original « Faire 10 » route.
 - 2026-09-05: Applied one stable color to each decimal place throughout the page, supported keyboard entry in Le code, and kept actionable mistake feedback in every answer-based activity.
 - 2026-09-05: Browser-tested all nine games at all three levels, topic switching, keyboard entry, internal-zero exercises, incorrect attempts, successful completion, and the 360 px layout with zero document overflow or console errors.
+- 2026-09-05: Interaction audit found several clarity gaps despite functional tests passing: Les paquets hid the invariant total and separated the action from the objects; L’abaque wrapped from 0 to 9 when subtracting; Le compteur was an arithmetic multiple-choice instead of a carry demonstration; comparison feedback named the wrong first place to inspect; La ligne hid its step; Le code only allowed destructive left-to-right correction; and several expert representations relied too heavily on notation.
+- 2026-09-05: Reworked Les paquets around direct object tapping and a visible invariant total; rebuilt Le compteur as a one-press carry demonstration; made abacus limits explicit; and added a persistent place-color key with full position names.
+- 2026-09-05: Replaced dense decomposition text with aligned color chips, highlighted the first differing comparison column, exposed number-line steps, gave La machine visible distance and move tokens, aligned detective clues by place, and made every code position directly editable.
+- 2026-09-05: Replayed all nine activities through their important action/error/success chains. Desktop and 360 px screenshots were inspected; all nine mobile layouts have zero document overflow, keyboard input remains functional, and no browser errors were reported.
 
 ## TODO
 
