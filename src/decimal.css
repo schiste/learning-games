@@ -100,6 +100,29 @@
 .exchange-result strong { font-size: 18px; }
 .exchange-result span { font-size: 14px; }
 
+.exchange-animation { position: relative; width: min(100%, 620px); height: 225px; margin: 0 auto 14px; overflow: hidden; border: 3px solid var(--ink); border-radius: 24px; background: #fffaf0; box-shadow: 0 6px 0 var(--soft); }
+.exchange-step { --exchange-from: var(--sun); --exchange-to: var(--leaf); position: absolute; inset: 0; padding: 20px; display: grid; place-content: center; gap: 14px; opacity: 0; animation: exchange-step-show 1.15s ease-in-out var(--step-delay) both; }
+.exchange-step.is-last { animation-name: exchange-step-stay; }
+.exchange-step.from-berry { --exchange-from: var(--place-m); }
+.exchange-step.from-sky { --exchange-from: var(--place-c); }
+.exchange-step.from-leaf { --exchange-from: var(--place-d); }
+.exchange-step.from-sun { --exchange-from: var(--place-u); }
+.exchange-step.to-berry { --exchange-to: var(--place-m); }
+.exchange-step.to-sky { --exchange-to: var(--place-c); }
+.exchange-step.to-leaf { --exchange-to: var(--place-d); }
+.exchange-step.to-sun { --exchange-to: var(--place-u); }
+.exchange-objects { min-width: 360px; display: grid; grid-template-columns: 1fr 54px 1fr; align-items: center; }
+.exchange-ten { justify-self: start; width: 132px; display: grid; grid-template-columns: repeat(5, 22px); gap: 5px; }
+.exchange-ten .material { width: 22px; height: 22px; border-radius: 6px; background: var(--exchange-from); animation: ten-pieces-move 1.15s ease-in-out var(--step-delay) both; }
+.exchange-ten .material span { display: block; color: white; font-size: 6px; writing-mode: horizontal-tb; }
+.exchange-step.from-sun .exchange-ten .material span { color: var(--ink); }
+.exchange-arrow { color: var(--ink); font-size: 35px; font-weight: 700; animation: exchange-arrow-pulse 1.15s ease-in-out var(--step-delay) both; }
+.exchange-one { min-width: 132px; display: grid; place-items: center; justify-self: end; }
+.exchange-one .material { width: 66px; height: 66px; border-radius: 13px; background: var(--exchange-to); animation: one-piece-appears 1.15s ease-out var(--step-delay) both; }
+.exchange-one .material span { display: block; color: white; font-size: 13px; writing-mode: horizontal-tb; }
+.exchange-step.to-sun .exchange-one .material span { color: var(--ink); }
+.exchange-step > strong { color: var(--ink); font-size: clamp(18px, 2.4vw, 23px); }
+
 .decimal-abacus { width: min(100%, 680px); margin: 0 auto 18px; padding: 16px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; border: 3px solid var(--ink); border-radius: 24px; background: #76543f; box-shadow: inset 0 -9px rgba(45,27,18,.18), 0 6px 0 var(--soft); }
 .decimal-abacus.columns-2 { max-width: 390px; grid-template-columns: repeat(2, 1fr); }
 .decimal-abacus.columns-3 { max-width: 540px; grid-template-columns: repeat(3, 1fr); }
@@ -171,11 +194,18 @@
 .machine-display i { font-size: 32px; font-style: normal; }
 .machine-distance { width: fit-content; margin: 0 auto 10px; padding: 6px 13px; border-radius: 999px; background: var(--sun); }
 .machine-distance strong { font-size: 20px; }
-.machine-operations { margin: 9px 0 14px; display: flex; justify-content: center; gap: 9px; flex-wrap: wrap; }
+.machine-operations { width: min(100%, 620px); margin: 9px auto 14px; display: grid; justify-content: center; gap: 9px; }
+.machine-operations.operations-2 { max-width: 280px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.machine-operations.operations-3 { max-width: 430px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.machine-operations.operations-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .machine-operations button { min-width: 105px; min-height: 66px; padding: 7px 10px; border: 3px solid var(--ink); border-radius: 15px; background: white; cursor: pointer; box-shadow: 0 4px 0 var(--soft); }
 .machine-operations button strong, .machine-operations button small { display: block; }
 .machine-operations button strong { font-size: 22px; }
 .machine-operations button small { margin-top: 2px; color: #756459; font-size: 11px; }
+.machine-operations button.place-berry { background: color-mix(in srgb, var(--place-m) 16%, white); border-color: color-mix(in srgb, var(--place-m) 75%, var(--ink)); }
+.machine-operations button.place-sky { background: color-mix(in srgb, var(--place-c) 16%, white); border-color: color-mix(in srgb, var(--place-c) 75%, var(--ink)); }
+.machine-operations button.place-leaf { background: color-mix(in srgb, var(--place-d) 15%, white); border-color: color-mix(in srgb, var(--place-d) 75%, var(--ink)); }
+.machine-operations button.place-sun { background: color-mix(in srgb, var(--place-u) 22%, white); border-color: #a97f00; }
 .machine-status { min-height: 28px; margin-bottom: 8px; display: flex; justify-content: center; align-items: center; gap: 5px; color: #756459; }
 .machine-status i { width: 17px; height: 17px; border: 2px solid var(--ink); border-radius: 50%; background: white; }
 .machine-status i.is-used { background: var(--sun); }
@@ -253,6 +283,14 @@
   .machine-display .place-digit { width: 33px; min-height: 65px; padding: 3px; }
   .machine-display .place-digit small { font-size: 7px; }
   .machine-operations button { min-width: 67px; }
+  .machine-operations.operations-4 { max-width: 280px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .exchange-animation { height: 205px; }
+  .exchange-step { padding-inline: 8px; }
+  .exchange-objects { min-width: 280px; grid-template-columns: 1fr 38px 1fr; }
+  .exchange-ten { width: 112px; grid-template-columns: repeat(5, 19px); gap: 4px; }
+  .exchange-ten .material { width: 19px; height: 19px; }
+  .exchange-one { min-width: 100px; }
+  .exchange-one .material { width: 57px; height: 57px; }
   .detective-cards button { grid-template-columns: 25px 1fr; padding-inline: 8px; font-size: 16px; }
   .detective-card-mark { width: 24px; height: 24px; }
   .detective-representation { gap: 3px; }
@@ -263,3 +301,8 @@
 
 @keyframes invite-tap { 0%, 100% { box-shadow: inset 0 0 0 4px white, 0 0 0 3px var(--sun); } 50% { box-shadow: inset 0 0 0 4px white, 0 0 0 7px color-mix(in srgb, var(--sun) 55%, transparent); } }
 @keyframes digit-change { 0% { transform: translateY(-5px); } 100% { transform: translateY(0); } }
+@keyframes exchange-step-show { 0%, 4% { opacity: 0; } 12%, 86% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes exchange-step-stay { 0%, 4% { opacity: 0; } 12%, 100% { opacity: 1; } }
+@keyframes ten-pieces-move { 0%, 25% { opacity: 1; transform: translateX(0) scale(1); } 64%, 100% { opacity: 0; transform: translateX(-92px) scale(.2); } }
+@keyframes exchange-arrow-pulse { 0%, 28% { opacity: .25; transform: scale(.8); } 48%, 100% { opacity: 1; transform: scale(1); } }
+@keyframes one-piece-appears { 0%, 56% { opacity: 0; transform: scale(.25) rotate(-8deg); } 78% { opacity: 1; transform: scale(1.15) rotate(3deg); } 100% { opacity: 1; transform: scale(1) rotate(0); } }

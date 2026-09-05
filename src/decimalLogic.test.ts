@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   activePlaces,
   bundleRound,
+  carryExchanges,
   codeClue,
   counterRound,
   decimalNumber,
@@ -67,8 +68,23 @@ describe("decimal-system rounds", () => {
         }
         expect(difference).toBe(0);
         expect(moves).toBeLessThanOrEqual(round.maxMoves);
+        expect(round.operations).toEqual([...round.operations].sort((a, b) => b - a));
       }
     }
+  });
+
+  it("describes single and cascading base-ten exchanges", () => {
+    expect(carryExchanges(19, 1, 1)).toEqual([{ fromIndex: 1, toIndex: 0 }]);
+    expect(carryExchanges(99, 1, 2)).toEqual([
+      { fromIndex: 2, toIndex: 1 },
+      { fromIndex: 1, toIndex: 0 },
+    ]);
+    expect(carryExchanges(999, 1, 3)).toEqual([
+      { fromIndex: 3, toIndex: 2 },
+      { fromIndex: 2, toIndex: 1 },
+      { fromIndex: 1, toIndex: 0 },
+    ]);
+    expect(carryExchanges(190, 10, 2)).toEqual([{ fromIndex: 1, toIndex: 0 }]);
   });
 
   it("creates two true detective cards and one false card", () => {

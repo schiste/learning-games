@@ -8,6 +8,8 @@ New prompt: Add a second page with the same « Je découvre / Je m’entraîne /
 
 Current refinement prompt: Re-review the decimal games critically and improve the activities that are not intuitive enough for a child discovering place value.
 
+Current animation prompt: Put La machine’s add buttons in decimal reading order and add explanatory animations showing that 10 units make 1 ten, 10 tens make 1 hundred, and so on.
+
 ## Progress
 
 - 2026-09-05: Defined three shared complexity grades: Découverte, Entraînement, Défi.
@@ -33,6 +35,10 @@ Current refinement prompt: Re-review the decimal games critically and improve th
 - 2026-09-05: Reworked Les paquets around direct object tapping and a visible invariant total; rebuilt Le compteur as a one-press carry demonstration; made abacus limits explicit; and added a persistent place-color key with full position names.
 - 2026-09-05: Replaced dense decomposition text with aligned color chips, highlighted the first differing comparison column, exposed number-line steps, gave La machine visible distance and move tokens, aligned detective clues by place, and made every code position directly editable.
 - 2026-09-05: Replayed all nine activities through their important action/error/success chains. Desktop and 360 px screenshots were inspected; all nine mobile layouts have zero document overflow, keyboard input remains functional, and no browser errors were reported.
+- 2026-09-05: Planned one shared, action-triggered exchange animation for Les paquets and La machine. The visual sequence preserves the M/C/D/U color system, moves ten source pieces toward the column on their left, and reveals one higher-place piece; machine controls will use the same left-to-right order as the written number.
+- 2026-09-05: Reordered La machine controls as M/C/D/U (`+1 000`, `+100`, `+10`, `+1`) on desktop and as a stable 2×2 reading grid on phones, with each action retaining its place color and full name.
+- 2026-09-05: Added a shared right-to-left exchange animation to Les paquets, Le compteur, and La machine. Ten labeled pieces now gather into one labeled higher-place piece; `999 + 1` visibly sequences U→D, D→C, then C→M before the digits update.
+- 2026-09-05: Added carry-sequence tests and browser-verified the animation at several timestamps, ordered controls, full machine completion, mobile layout, reduced-motion-compatible end states, semantic game state, and the complete nine-game regression without console errors.
 
 ## TODO
 

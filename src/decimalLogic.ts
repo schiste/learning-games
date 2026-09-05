@@ -4,6 +4,7 @@ export type Place = { name: string; short: string; value: number; color: string 
 export type CounterRound = { start: number; operation: number; answer: number; options: number[] };
 export type LineRound = { values: number[]; missingIndex: number; answer: number; options: number[] };
 export type MachineRound = { start: number; target: number; operations: number[]; maxMoves: number };
+export type CarryExchange = { fromIndex: number; toIndex: number };
 export type DetectiveCard = {
   kind: "places" | "products";
   digits: number[];
@@ -95,19 +96,31 @@ export function lineRound(complexity: Complexity): LineRound {
   return { values, missingIndex, answer, options: nearbyOptions(answer, complexity, complexity + 1) };
 }
 
+export function carryExchanges(number: number, operation: number, complexity: Complexity): CarryExchange[] {
+  const places = activePlaces(complexity);
+  const digits = placeDigits(number, complexity);
+  let placeIndex = places.findIndex((place) => place.value === operation);
+  const exchanges: CarryExchange[] = [];
+  while (placeIndex > 0 && digits[placeIndex] === 9) {
+    exchanges.push({ fromIndex: placeIndex, toIndex: placeIndex - 1 });
+    placeIndex -= 1;
+  }
+  return exchanges;
+}
+
 export function machineRound(complexity: Complexity): MachineRound {
   const rounds: Record<Complexity, MachineRound[]> = {
     1: [
-      { start: 12, target: 34, operations: [1, 10], maxMoves: 4 },
-      { start: 25, target: 47, operations: [1, 10], maxMoves: 4 },
+      { start: 19, target: 30, operations: [10, 1], maxMoves: 2 },
+      { start: 48, target: 60, operations: [10, 1], maxMoves: 3 },
     ],
     2: [
-      { start: 183, target: 305, operations: [1, 10, 100], maxMoves: 5 },
-      { start: 240, target: 462, operations: [1, 10, 100], maxMoves: 6 },
+      { start: 99, target: 210, operations: [100, 10, 1], maxMoves: 3 },
+      { start: 190, target: 310, operations: [100, 10, 1], maxMoves: 3 },
     ],
     3: [
-      { start: 963, target: 1093, operations: [1, 10, 100, 1000], maxMoves: 4 },
-      { start: 1093, target: 2094, operations: [1, 10, 100, 1000], maxMoves: 2 },
+      { start: 999, target: 2100, operations: [1000, 100, 10, 1], maxMoves: 3 },
+      { start: 1990, target: 3100, operations: [1000, 100, 10, 1], maxMoves: 3 },
     ],
   };
   const round = rounds[complexity][randomInt(0, rounds[complexity].length - 1)];

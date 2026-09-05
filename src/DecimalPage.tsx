@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { beep, fanfare } from "./audio";
 import {
   activePlaces,
   bundleRound,
+  carryExchanges,
   codeClue,
   counterRound,
   decimalNumber,
@@ -13,6 +14,7 @@ import {
   machineRound,
   nearbyOptions,
   placeDigits,
+  type Place,
 } from "./decimalLogic";
 import { type Complexity } from "./gameLogic";
 import "./decimal.css";
@@ -143,6 +145,31 @@ function PlaceNumber({ number, complexity, hiddenIndex, highlighted = [] }: {
   );
 }
 
+type ExchangeStep = { from: Place; to: Place };
+
+function ExchangeAnimation({ steps }: { steps: ExchangeStep[] }) {
+  return (
+    <div className="exchange-animation" role="status" aria-live="assertive">
+      {steps.map((step, stepIndex) => (
+        <div
+          className={`exchange-step from-${step.from.color} to-${step.to.color} ${stepIndex === steps.length - 1 ? "is-last" : ""}`}
+          style={{ "--step-delay": `${stepIndex * 1.15}s` } as CSSProperties}
+          key={`${step.from.value}-${step.to.value}`}
+        >
+          <div className="exchange-objects" aria-hidden="true">
+            <span className="exchange-one"><i className={`material material-${step.to.value}`}><span>{formatNumber(step.to.value)}</span></i></span>
+            <span className="exchange-arrow">←</span>
+            <span className="exchange-ten">
+              {Array.from({ length: 10 }, (_, index) => <i className={`material material-${step.from.value}`} key={index}><span>{formatNumber(step.from.value)}</span></i>)}
+            </span>
+          </div>
+          <strong>10 {step.from.name} deviennent 1 {singularPlace(step.to.name)}</strong>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function NumberChoices({ answer, options, onCorrect, hint }: {
   answer: number;
   options: number[];
@@ -179,57 +206,66 @@ function BundlesGame({ complexity }: { complexity: Complexity }) {
   const [round, setRound] = useState(() => bundleRound(complexity));
   const places = activePlaces(complexity);
   const [counts, setCounts] = useState(round.counts);
+  const [exchanging, setExchanging] = useState(false);
   const [exchanged, setExchanged] = useState(false);
+  const later = useTimeouts();
   const from = places[round.fromIndex];
   const to = places[round.toIndex];
   const reset = () => {
     const next = bundleRound(complexity);
     setRound(next);
     setCounts(next.counts);
+    setExchanging(false);
     setExchanged(false);
   };
   const bundle = () => {
-    if (exchanged) return;
+    if (exchanged || exchanging) return;
     beep(620, 0.12);
-    setCounts((values) => values.map((count, index) => (
-      index === round.fromIndex ? count - 10 : index === round.toIndex ? count + 1 : count
-    )));
-    setExchanged(true);
-    window.setTimeout(fanfare, 180);
+    setExchanging(true);
+    later(() => {
+      setCounts((values) => values.map((count, index) => (
+        index === round.fromIndex ? count - 10 : index === round.toIndex ? count + 1 : count
+      )));
+      setExchanging(false);
+      setExchanged(true);
+      fanfare();
+    }, 1400);
   };
   return (
-    <section className="decimal-game-state bundles-game" data-scene={sceneData({ target: round.target, counts, exchanged, places: places.map((place) => place.short) })}>
-      <p className="instruction">Touche le paquet de 10 {from.name}</p>
+    <section className="decimal-game-state bundles-game" data-scene={sceneData({ target: round.target, counts, exchanging, exchanged, places: places.map((place) => place.short) })}>
+      <p className="instruction">{exchanging ? "Regarde l’échange" : `Touche le paquet de 10 ${from.name}`}</p>
       <div className="value-invariant"><span>La quantité vaut</span><strong>{formatNumber(round.target)}</strong><span>avant et après</span></div>
-      <div className={`base-ten-workbench materials-${places.length}`}>
-        {places.map((place, placeIndex) => (
-          <button
-            className={`place-material place-${place.color} ${placeIndex === round.fromIndex && !exchanged ? "is-actionable" : ""}`}
-            key={place.value}
-            aria-label={`${counts[placeIndex]} ${place.name}${placeIndex === round.fromIndex && !exchanged ? ", toucher pour regrouper" : ""}`}
-            onClick={placeIndex === round.fromIndex ? bundle : undefined}
-            disabled={placeIndex !== round.fromIndex || exchanged}
-          >
-            <header><strong>{counts[placeIndex]}</strong><span>{place.name}</span></header>
-            <div>
-              {Array.from({ length: counts[placeIndex] }, (_, index) => (
-                <i className={`material material-${place.value} ${placeIndex === round.fromIndex && !exchanged && index < 10 ? "is-in-bundle" : ""}`} key={index}>
-                  <span>{place.value}</span>
-                </i>
-              ))}
-            </div>
-          </button>
-        ))}
-      </div>
+      {exchanging ? <ExchangeAnimation steps={[{ from, to }]} /> : (
+        <div className={`base-ten-workbench materials-${places.length}`}>
+          {places.map((place, placeIndex) => (
+            <button
+              className={`place-material place-${place.color} ${placeIndex === round.fromIndex && !exchanged ? "is-actionable" : ""}`}
+              key={place.value}
+              aria-label={`${counts[placeIndex]} ${place.name}${placeIndex === round.fromIndex && !exchanged ? ", toucher pour regrouper" : ""}`}
+              onClick={placeIndex === round.fromIndex ? bundle : undefined}
+              disabled={placeIndex !== round.fromIndex || exchanged}
+            >
+              <header><strong>{counts[placeIndex]}</strong><span>{place.name}</span></header>
+              <div>
+                {Array.from({ length: counts[placeIndex] }, (_, index) => (
+                  <i className={`material material-${place.value} ${placeIndex === round.fromIndex && !exchanged && index < 10 ? "is-in-bundle" : ""}`} key={index}>
+                    <span>{place.value}</span>
+                  </i>
+                ))}
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
       <div className="bundle-actions">
-        {!exchanged ? (
+        {!exchanged && !exchanging ? (
           <button className="bundle-button" onClick={bundle}>Transformer ces 10 {from.name}</button>
-        ) : (
+        ) : exchanged ? (
           <div className="exchange-result" role="status">
             <strong>10 {from.name} = 1 {singularPlace(to.name)}</strong>
             <span>La quantité vaut toujours {formatNumber(round.target)}.</span>
           </div>
-        )}
+        ) : null}
         {exchanged && <DecimalButton onClick={reset}>Un autre paquet</DecimalButton>}
       </div>
     </section>
@@ -346,6 +382,9 @@ function CardsGame({ complexity }: { complexity: Complexity }) {
 function CounterGame({ complexity }: { complexity: Complexity }) {
   const [round, setRound] = useState(() => counterRound(complexity));
   const [advanced, setAdvanced] = useState(false);
+  const [animating, setAnimating] = useState(false);
+  const [exchangeSteps, setExchangeSteps] = useState<ExchangeStep[]>([]);
+  const later = useTimeouts();
   const places = activePlaces(complexity);
   const startDigits = placeDigits(round.start, complexity);
   const answerDigits = placeDigits(round.answer, complexity);
@@ -357,25 +396,34 @@ function CounterGame({ complexity }: { complexity: Complexity }) {
     : rolledIndex >= 0
     ? `9 ${places[rolledIndex].name} deviennent 0 : 1 ${singularPlace(places[rolledIndex - 1].name)} avance.`
     : `La colonne des ${places[operationIndex].name} avance de 1.`;
-  const reset = () => { setRound(counterRound(complexity)); setAdvanced(false); };
+  const reset = () => { setRound(counterRound(complexity)); setAdvanced(false); setAnimating(false); setExchangeSteps([]); };
   const advance = () => {
-    if (advanced) return;
-    setAdvanced(true);
+    if (advanced || animating) return;
     beep(680, 0.13);
+    const exchanges = carryExchanges(round.start, round.operation, complexity).map(({ fromIndex, toIndex }) => ({ from: places[fromIndex], to: places[toIndex] }));
+    if (!exchanges.length) {
+      setAdvanced(true);
+      return;
+    }
+    setExchangeSteps(exchanges);
+    setAnimating(true);
+    const animationDuration = exchanges.length * 1150;
+    later(() => setAdvanced(true), animationDuration - 160);
+    later(() => { setAnimating(false); setExchangeSteps([]); }, animationDuration + 650);
   };
   return (
-    <section className="decimal-game-state counter-game" data-scene={sceneData({ ...round, current: advanced ? round.answer : round.start, advanced, changed })}>
-      <p className="instruction">Fais tourner le compteur d’un cran</p>
+    <section className="decimal-game-state counter-game" data-scene={sceneData({ ...round, current: advanced ? round.answer : round.start, advanced, changed, animating, exchanges: exchangeSteps.map((step) => `${step.from.short}->${step.to.short}`) })}>
+      <p className="instruction">{animating ? "Regarde la retenue avancer vers la gauche" : "Fais tourner le compteur d’un cran"}</p>
       <div className="counter-demo">
         <span className="counter-caption">{advanced ? "Après" : "Avant"}</span>
         <PlaceNumber number={advanced ? round.answer : round.start} complexity={complexity} highlighted={advanced ? changed : []} />
       </div>
-      {!advanced ? (
+      {animating ? <ExchangeAnimation steps={exchangeSteps} /> : !advanced ? (
         <button className="counter-action" onClick={advance}><span>Appuie ici</span><strong>+ {formatNumber(round.operation)}</strong></button>
       ) : (
         <div className="carry-explanation" role="status"><strong>{formatNumber(round.start)} + {formatNumber(round.operation)} = {formatNumber(round.answer)}</strong><span>{explanation}</span></div>
       )}
-      {advanced && <DecimalButton color="berry" onClick={reset}>Faire avancer un autre compteur</DecimalButton>}
+      {advanced && !animating && <DecimalButton color="berry" onClick={reset}>Faire avancer un autre compteur</DecimalButton>}
     </section>
   );
 }
@@ -448,14 +496,23 @@ function MachineGame({ complexity }: { complexity: Complexity }) {
   const [wrong, setWrong] = useState<number | null>(null);
   const [message, setMessage] = useState("");
   const [done, setDone] = useState(false);
-  const [lastOperation, setLastOperation] = useState<number | null>(null);
+  const [exchangeSteps, setExchangeSteps] = useState<ExchangeStep[]>([]);
+  const [pending, setPending] = useState(false);
+  const later = useTimeouts();
   const current = history[history.length - 1];
   const moves = history.length - 1;
+  const places = activePlaces(complexity);
+  const previous = history.length > 1 ? history[history.length - 2] : null;
+  const changedPlaces = previous === null ? [] : placeDigits(current, complexity).flatMap((digit, index) => (
+    digit === placeDigits(previous, complexity)[index] ? [] : [index]
+  ));
+  const orderedOperations = [...round.operations].sort((first, second) => second - first);
   const reset = () => {
     const next = machineRound(complexity);
-    setRound(next); setHistory([next.start]); setWrong(null); setMessage(""); setDone(false); setLastOperation(null);
+    setRound(next); setHistory([next.start]); setWrong(null); setMessage(""); setDone(false); setExchangeSteps([]); setPending(false);
   };
   const add = (operation: number) => {
+    if (pending) return;
     if (moves >= round.maxMoves) {
       setWrong(operation); setMessage("Tous les coups sont utilisés. Reviens en arrière pour changer."); beep(200, 0.2); return;
     }
@@ -463,31 +520,52 @@ function MachineGame({ complexity }: { complexity: Complexity }) {
       setWrong(operation); setMessage(`+ ${formatNumber(operation)} ferait dépasser la cible.`); beep(200, 0.2); return;
     }
     const next = current + operation;
-    setHistory((values) => [...values, next]); setWrong(null); setMessage(""); setLastOperation(operation); beep(560, 0.08);
-    if (next === round.target) setDone(true);
+    const carries = carryExchanges(current, operation, complexity).map(({ fromIndex, toIndex }) => ({ from: places[fromIndex], to: places[toIndex] }));
+    setWrong(null); setMessage(""); beep(560, 0.08);
+    if (!carries.length) {
+      setHistory((values) => [...values, next]);
+      if (next === round.target) later(() => setDone(true), 550);
+      return;
+    }
+    setPending(true);
+    setExchangeSteps(carries);
+    const animationDuration = carries.length * 1150;
+    later(() => {
+      setHistory((values) => [...values, next]);
+    }, animationDuration - 160);
+    later(() => {
+      setPending(false);
+      setExchangeSteps([]);
+      if (next === round.target) setDone(true);
+    }, animationDuration + 650);
   };
-  const undo = () => { setHistory((values) => values.length > 1 ? values.slice(0, -1) : values); setWrong(null); setMessage(""); setLastOperation(null); };
+  const undo = () => {
+    if (pending) return;
+    setHistory((values) => values.length > 1 ? values.slice(0, -1) : values); setWrong(null); setMessage("");
+  };
   if (done) return <DecimalCelebration title="La machine est arrivée exactement au bon nombre !" onNext={reset} />;
   return (
-    <section className="decimal-game-state machine-game" data-scene={sceneData({ start: round.start, current, target: round.target, moves, maxMoves: round.maxMoves })}>
+    <section className="decimal-game-state machine-game" data-scene={sceneData({ start: round.start, current, target: round.target, moves, maxMoves: round.maxMoves, pending, exchanges: exchangeSteps.map((step) => `${step.from.short}->${step.to.short}`) })}>
       <p className="instruction">Atteins la cible en {round.maxMoves} coups maximum</p>
       <div className="machine-display">
-        <div><span>Tu es ici</span><PlaceNumber number={current} complexity={complexity} highlighted={lastOperation ? [activePlaces(complexity).findIndex((place) => place.value === lastOperation)] : []} /></div>
+        <div><span>Tu es ici</span><PlaceNumber number={current} complexity={complexity} highlighted={changedPlaces} /></div>
         <i aria-hidden="true">→</i>
         <div><span>Cible</span><PlaceNumber number={round.target} complexity={complexity} /></div>
       </div>
       <div className="machine-distance">Il reste <strong>{formatNumber(round.target - current)}</strong> à ajouter</div>
-      <div className="machine-operations">
-        {round.operations.map((operation) => {
-          const place = activePlaces(complexity).find((candidate) => candidate.value === operation)!;
-          return <button key={operation} className={wrong === operation ? "is-wrong" : ""} onClick={() => add(operation)}><strong>+ {formatNumber(operation)}</strong><small>1 {singularPlace(place.name)}</small></button>;
-        })}
-      </div>
+      {pending ? <ExchangeAnimation steps={exchangeSteps} /> : (
+        <div className={`machine-operations operations-${orderedOperations.length}`} aria-label="Ajouter par position, des milliers vers les unités">
+          {orderedOperations.map((operation) => {
+            const place = places.find((candidate) => candidate.value === operation)!;
+            return <button key={operation} className={`place-${place.color} ${wrong === operation ? "is-wrong" : ""}`} onClick={() => add(operation)}><strong>+ {formatNumber(operation)}</strong><small>1 {singularPlace(place.name)}</small></button>;
+          })}
+        </div>
+      )}
       <div className="machine-status" aria-label={`${moves} coups utilisés sur ${round.maxMoves}`}>
         {Array.from({ length: round.maxMoves }, (_, index) => <i className={index < moves ? "is-used" : ""} key={index} />)}
         <span>{round.maxMoves - moves} coup{round.maxMoves - moves > 1 ? "s" : ""} encore disponible{round.maxMoves - moves > 1 ? "s" : ""}</span>
       </div>
-      <button className="undo-button" onClick={undo} disabled={history.length === 1}>↶ Revenir</button>
+      <button className="undo-button" onClick={undo} disabled={history.length === 1 || pending}>↶ Revenir</button>
       <DecimalFeedback message={message} />
     </section>
   );
