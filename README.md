@@ -1,8 +1,8 @@
 # Dix sur dix
 
-Des jeux tactiles, libres et gratuits pour aider les enfants à comprendre les nombres et à entrer dans la lecture.
+Des jeux tactiles, libres et gratuits pour aider les enfants à comprendre les nombres et consolider les apprentissages fondamentaux du cycle 2.
 
-Trois parcours proposent trente activités, des premières manipulations visuelles jusqu’au calcul mental, à la valeur de position, au décodage et à l’encodage. Le site fonctionne dans un navigateur, sans compte, sans publicité et sans collecte de données.
+Quatre parcours proposent 120 activités, des premières manipulations visuelles jusqu’au calcul mental, à la valeur de position, à l’orthographe, aux mesures et à la géométrie. Le site fonctionne dans un navigateur, sans compte, sans publicité et sans collecte de données.
 
 Chaque jeu possède trois niveaux de complexité — **Découverte**, **Entraînement** et **Défi** — qui font évoluer les nombres, les aides visuelles, le nombre de choix ou la taille du plateau sans changer les règles du jeu.
 
@@ -12,11 +12,13 @@ Le parcours « Construire les nombres » ajoute neuf jeux répartis entre « Je 
 
 Le parcours « Apprendre à lire » ajoute neuf jeux dans la même progression : Le piano, J’entends, Les lettres, Les syllabes, Le mot juste, Je frappe, La phrase, L’intrus et La dictée. Il suit les principes publics de Lecture Piano CP : entrée par les graphèmes, fusion tactile des sons, passage des sons simples aux sons complexes et étayage progressif. Les consignes, syllabes, mots, phrases et graphismes ont été créés spécialement pour ce projet ; ce parcours indépendant n’est ni un produit officiel ni une reproduction des ouvrages des Éditions Retz. La synthèse vocale française du navigateur permet de réécouter les sons et les mots à volonté.
 
+Le parcours « Les bases du cycle 2 » rassemble dix espaces : addition et soustraction, multiplication et partage, orthographe et dictée, fractions, problèmes, temps, monnaie, grammaire, mesures et géométrie. Chaque espace contient neuf jeux répartis entre « Je découvre », « Je m’entraîne » et « Je maîtrise ». La classe — CP, CE1 ou CE2 — détermine les notions et les nombres travaillés ; un réglage d’aide indépendant fait évoluer les repères de guidé à autonome sans changer la règle du jeu. Six mécaniques partagées permettent de choisir, construire, ordonner, trier, se déplacer ou répondre contre la montre. Les deux jeux chronométrés durent toujours 60 secondes, acceptent le clavier et colorent progressivement leur décor.
+
 Le chrono dure toujours 60 secondes. Son fond se remplit progressivement pour rendre le temps visible : le niveau 1 propose deux termes, les niveaux 2 et 3 passent à trois termes, et le niveau 3 limite tous les nombres et les réponses à la plage de 0 à 5.
 
 ## Jouer
 
-Le site public est disponible sur **https://schiste.github.io/learning-games/**. Le parcours de numération est accessible avec **https://schiste.github.io/learning-games/#nombres** et celui de lecture avec **https://schiste.github.io/learning-games/#lecture**.
+Le site public est disponible sur **https://schiste.github.io/learning-games/**. Le parcours de numération est accessible avec **https://schiste.github.io/learning-games/#nombres**, celui de lecture avec **https://schiste.github.io/learning-games/#lecture** et les bases du cycle 2 avec **https://schiste.github.io/learning-games/#cycle-2**.
 
 ## Développer
 
@@ -38,10 +40,12 @@ npm run check
 - `src/App.tsx` contient le parcours des compléments à 10 et la navigation entre les thèmes.
 - `src/DecimalPage.tsx` contient les neuf jeux de construction des nombres.
 - `src/ReadingPage.tsx` contient les neuf jeux de lecture.
+- `src/CoreSkillsPage.tsx` contient le lecteur commun des 90 jeux du cycle 2.
 - `src/gameLogic.ts` contient la génération des exercices et les fonctions testables.
 - `src/decimalLogic.ts` contient les générateurs et outils de valeur de position.
 - `src/readingLogic.ts` contient les corpus originaux et générateurs d’exercices de lecture.
-- `src/styles.css`, `src/decimal.css` et `src/reading.css` portent le système visuel responsive.
+- `src/coreSkillsLogic.ts` décrit les dix espaces, les variantes CP/CE1/CE2 et les exercices testables.
+- `src/styles.css`, `src/decimal.css`, `src/reading.css` et `src/core-skills.css` portent le système visuel responsive.
 - `.github/workflows/deploy.yml` vérifie puis publie le site sur GitHub Pages.
 
 ## Contribuer

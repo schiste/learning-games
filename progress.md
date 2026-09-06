@@ -12,6 +12,8 @@ Current animation prompt: Put La machine’s add buttons in decimal reading orde
 
 Current reading prompt: Add a new space for learning to read according to the Lecture Piano approach.
 
+Current cycle-2 prompt: Implement all ten proposed fundamental spaces: addition/subtraction, multiplication/sharing, spelling/dictation, fractions, problem solving, time, money, grammar/conjugation, measurement, and geometry.
+
 ## Progress
 
 - 2026-09-05: Defined three shared complexity grades: Découverte, Entraînement, Défi.
@@ -46,10 +48,14 @@ Current reading prompt: Add a new space for learning to read according to the Le
 - 2026-09-06: Added three support/complexity levels, a stable consonant/vowel/complex-grapheme color system, French browser speech, tactile word and sentence building, and an animated two-key syllable fusion.
 - 2026-09-06: Logic and full project checks pass (24 tests). Browser playthrough covers all nine success paths, incorrect-answer recovery, levels 1–3, the intermediate piano-fusion animation, semantic state, and 360 px layout with no overflow or console errors. A browser audit caught and fixed answer choices moving after an error in « Je frappe ».
 - 2026-09-06: Published version 0.6.0 from commit `1689ec6` through the GitHub Pages workflow and verified the live site returns HTTP 200 with the updated metadata.
+- 2026-09-06: Planned a scalable « Cycle 2 » area for ten spaces and ninety mini-games. Grade (CP/CE1/CE2) controls curricular scope while each game keeps an independent three-level support control. The topic rail exposes only one space’s nine games at a time to avoid navigation overload.
+- 2026-09-06: Implemented the ten Cycle 2 spaces and all 90 named mini-games across « Je découvre », « Je m’entraîne » and « Je maîtrise ». Six reusable interaction engines cover choices, construction, ordering, sorting, bounded movement and timed answers while each game keeps its own prompt, representation and feedback.
+- 2026-09-06: Added CP/CE1/CE2 corpus variants, per-game Guided/Repères/Autonome support, spoken spelling prompts, exact fraction/clock/coin visuals, visible timed markers, keyboard numeric input and the same progressive 60-second background used elsewhere.
+- 2026-09-06: Automated generation checks cover all 810 game/class/support combinations. Browser audits rendered all 90 games, completed every activity once, verified wrong-answer recovery, keyboard scoring, timer completion and a 360 px layout with no horizontal page overflow or console errors.
 
 ## TODO
 
-- No known implementation tasks for this iteration.
+- Seek classroom feedback on the breadth and wording of the new Cycle 2 corpus before expanding it further.
 
 ## Suggestions for the next iteration
 
@@ -57,3 +63,4 @@ Current reading prompt: Add a new space for learning to read according to the Le
 - Consider a locally stored child-friendly progress trail across activities.
 - Consider extracting the growing game registry and individual games from `App.tsx` before the next large batch of activities.
 - Have a CP teacher review the original reading corpus and tune its exact graphème progression to the class’s current Lecture Piano edition.
+- Have CP, CE1 and CE2 teachers review the Cycle 2 difficulty bands and replace any overly generic situation with class-tested examples.

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { beep, fanfare } from "./audio";
 import DecimalPage from "./DecimalPage";
 import ReadingPage from "./ReadingPage";
+import CoreSkillsPage from "./CoreSkillsPage";
 import {
   answerOptions,
   balanceRound,
@@ -26,7 +27,7 @@ declare global {
 }
 
 type GameId = "box" | "hands" | "basket" | "frog" | "bowling" | "holes" | "pairs" | "timer" | "cash" | "balance" | "path" | "share";
-type TopicId = "ten" | "decimal" | "reading";
+type TopicId = "ten" | "decimal" | "reading" | "core";
 type Color = "sky" | "sun" | "berry" | "leaf";
 type GameInfo = { id: GameId; label: string; icon: string; color: Color; timed?: boolean };
 
@@ -1220,7 +1221,8 @@ function GameNav({ game, onSelect }: { game: GameId; onSelect: (game: GameId) =>
 }
 
 export default function App() {
-  const [topic, setTopic] = useState<TopicId>(() => window.location.hash === "#nombres" ? "decimal" : window.location.hash === "#lecture" ? "reading" : "ten");
+  const topicFromHash = (): TopicId => window.location.hash === "#nombres" ? "decimal" : window.location.hash === "#lecture" ? "reading" : window.location.hash === "#cycle-2" ? "core" : "ten";
+  const [topic, setTopic] = useState<TopicId>(topicFromHash);
   const [game, setGame] = useState<GameId>("box");
   const [complexities, setComplexities] = useState<Record<GameId, Complexity>>({
     box: 1,
@@ -1240,7 +1242,7 @@ export default function App() {
   const complexity = complexities[game];
 
   useEffect(() => {
-    const readTopic = () => setTopic(window.location.hash === "#nombres" ? "decimal" : window.location.hash === "#lecture" ? "reading" : "ten");
+    const readTopic = () => setTopic(topicFromHash());
     window.addEventListener("hashchange", readTopic);
     return () => window.removeEventListener("hashchange", readTopic);
   }, []);
@@ -1259,18 +1261,24 @@ export default function App() {
       const decimalState = stage?.querySelector<HTMLElement>(".decimal-game-state");
       const readingStage = stage?.matches(".reading-stage") ? stage as HTMLElement : null;
       const readingState = stage?.querySelector<HTMLElement>(".reading-game-state");
+      const coreStage = stage?.matches(".core-stage") ? stage as HTMLElement : null;
+      const coreState = stage?.querySelector<HTMLElement>(".core-game-state");
       const visibleButtons = [...(stage?.querySelectorAll("button:not([disabled])") ?? [])]
         .map((button) => button.getAttribute("aria-label") || button.textContent?.trim())
         .filter(Boolean);
       return JSON.stringify({
         coordinateSystem: "DOM layout; origin top-left; x right; y down",
         topic,
-        game: readingStage?.dataset.readingGame ?? decimalStage?.dataset.decimalGame ?? game,
-        complexity: Number(readingStage?.dataset.complexity ?? decimalStage?.dataset.complexity ?? complexity),
+        game: coreStage?.dataset.coreGame ?? readingStage?.dataset.readingGame ?? decimalStage?.dataset.decimalGame ?? game,
+        space: coreStage?.dataset.coreSpace ?? null,
+        grade: coreStage?.dataset.grade ?? null,
+        complexity: Number(coreStage?.dataset.complexity ?? readingStage?.dataset.complexity ?? decimalStage?.dataset.complexity ?? complexity),
         instruction: stage?.querySelector(".instruction")?.textContent?.trim() ?? null,
         equation: stage?.querySelector(".equation, .bowling-equation, .cash-equation")?.textContent?.trim() ?? null,
         feedback: stage?.querySelector(".mistake-feedback.is-visible")?.textContent?.trim() ?? null,
-        scene: readingState
+        scene: coreState
+          ? JSON.parse(coreState.dataset.scene ?? "null")
+          : readingState
           ? JSON.parse(readingState.dataset.scene ?? "null")
           : decimalState
           ? JSON.parse(decimalState.dataset.scene ?? "null")
@@ -1327,10 +1335,11 @@ export default function App() {
         <a href="#faire-10" className={topic === "ten" ? "is-active" : ""} aria-current={topic === "ten" ? "page" : undefined}>Faire 10</a>
         <a href="#nombres" className={topic === "decimal" ? "is-active" : ""} aria-current={topic === "decimal" ? "page" : undefined}>Construire les nombres</a>
         <a href="#lecture" className={topic === "reading" ? "is-active" : ""} aria-current={topic === "reading" ? "page" : undefined}>Apprendre à lire</a>
+        <a href="#cycle-2" className={topic === "core" ? "is-active" : ""} aria-current={topic === "core" ? "page" : undefined}>Les bases du cycle 2</a>
       </nav>
 
       <main>
-        {topic === "decimal" ? <DecimalPage /> : topic === "reading" ? <ReadingPage /> : (
+        {topic === "decimal" ? <DecimalPage /> : topic === "reading" ? <ReadingPage /> : topic === "core" ? <CoreSkillsPage /> : (
           <>
             <GameNav game={game} onSelect={setGame} />
             <section className={`game-stage accent-${selected.color}`} aria-label={selected.label}>
