@@ -30,3 +30,19 @@ export function fanfare(): void {
     window.setTimeout(() => beep(frequency, 0.2), index * 110);
   });
 }
+
+export function speakFrench(text: string, rate = 0.76): void {
+  try {
+    if (!("speechSynthesis" in window)) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "fr-FR";
+    utterance.rate = rate;
+    utterance.pitch = 1.08;
+    const frenchVoice = window.speechSynthesis.getVoices().find((voice) => voice.lang.toLowerCase().startsWith("fr"));
+    if (frenchVoice) utterance.voice = frenchVoice;
+    window.speechSynthesis.speak(utterance);
+  } catch {
+    // Every audio cue also has a visible equivalent in the interface.
+  }
+}

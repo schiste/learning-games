@@ -10,6 +10,8 @@ Current refinement prompt: Re-review the decimal games critically and improve th
 
 Current animation prompt: Put La machine’s add buttons in decimal reading order and add explanatory animations showing that 10 units make 1 ten, 10 tens make 1 hundred, and so on.
 
+Current reading prompt: Add a new space for learning to read according to the Lecture Piano approach.
+
 ## Progress
 
 - 2026-09-05: Defined three shared complexity grades: Découverte, Entraînement, Défi.
@@ -39,13 +41,18 @@ Current animation prompt: Put La machine’s add buttons in decimal reading orde
 - 2026-09-05: Reordered La machine controls as M/C/D/U (`+1 000`, `+100`, `+10`, `+1`) on desktop and as a stable 2×2 reading grid on phones, with each action retaining its place color and full name.
 - 2026-09-05: Added a shared right-to-left exchange animation to Les paquets, Le compteur, and La machine. Ten labeled pieces now gather into one labeled higher-place piece; `999 + 1` visibly sequences U→D, D→C, then C→M before the digits update.
 - 2026-09-05: Added carry-sequence tests and browser-verified the animation at several timestamps, ordered controls, full machine completion, mobile layout, reduced-motion-compatible end states, semantic game state, and the complete nine-game regression without console errors.
+- 2026-09-06: Researched the official Lecture Piano CP approach: graphème-first instruction, tactile syllable fusion, simple before complex correspondences, fluency, and three differentiated reading levels. Chose to build original compatible activities without reproducing the manual’s protected text or artwork.
+- 2026-09-06: Added the « Apprendre à lire » route with nine original activities across the existing three-part progression: Le piano, J’entends, Les lettres, Les syllabes, Le mot juste, Je frappe, La phrase, L’intrus, and La dictée.
+- 2026-09-06: Added three support/complexity levels, a stable consonant/vowel/complex-grapheme color system, French browser speech, tactile word and sentence building, and an animated two-key syllable fusion.
+- 2026-09-06: Logic and full project checks pass (24 tests). Browser playthrough covers all nine success paths, incorrect-answer recovery, levels 1–3, the intermediate piano-fusion animation, semantic state, and 360 px layout with no overflow or console errors. A browser audit caught and fixed answer choices moving after an error in « Je frappe ».
 
 ## TODO
 
-- No known implementation tasks for this iteration.
+- Publish version 0.6.0 to GitHub Pages.
 
 ## Suggestions for the next iteration
 
 - Add optional spoken instructions while keeping every cue available visually.
 - Consider a locally stored child-friendly progress trail across activities.
 - Consider extracting the growing game registry and individual games from `App.tsx` before the next large batch of activities.
+- Have a CP teacher review the original reading corpus and tune its exact graphème progression to the class’s current Lecture Piano edition.
