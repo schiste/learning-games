@@ -45,10 +45,11 @@ Current reading prompt: Add a new space for learning to read according to the Le
 - 2026-09-06: Added the « Apprendre à lire » route with nine original activities across the existing three-part progression: Le piano, J’entends, Les lettres, Les syllabes, Le mot juste, Je frappe, La phrase, L’intrus, and La dictée.
 - 2026-09-06: Added three support/complexity levels, a stable consonant/vowel/complex-grapheme color system, French browser speech, tactile word and sentence building, and an animated two-key syllable fusion.
 - 2026-09-06: Logic and full project checks pass (24 tests). Browser playthrough covers all nine success paths, incorrect-answer recovery, levels 1–3, the intermediate piano-fusion animation, semantic state, and 360 px layout with no overflow or console errors. A browser audit caught and fixed answer choices moving after an error in « Je frappe ».
+- 2026-09-06: Published version 0.6.0 from commit `1689ec6` through the GitHub Pages workflow and verified the live site returns HTTP 200 with the updated metadata.
 
 ## TODO
 
-- Publish version 0.6.0 to GitHub Pages.
+- No known implementation tasks for this iteration.
 
 ## Suggestions for the next iteration
 
