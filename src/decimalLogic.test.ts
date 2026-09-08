@@ -56,19 +56,17 @@ describe("decimal-system rounds", () => {
     }
   });
 
-  it("builds reachable place-value machines", () => {
+  it("builds exact addition decomposition houses", () => {
     for (const complexity of [1, 2, 3] as const) {
       for (let index = 0; index < 20; index += 1) {
         const round = machineRound(complexity);
-        let difference = round.target - round.start;
-        let moves = 0;
-        for (const operation of [...round.operations].sort((a, b) => b - a)) {
-          moves += Math.floor(difference / operation);
-          difference %= operation;
-        }
-        expect(difference).toBe(0);
-        expect(moves).toBeLessThanOrEqual(round.maxMoves);
-        expect(round.operations).toEqual([...round.operations].sort((a, b) => b - a));
+        expect(round.start + round.addend).toBe(round.target);
+        expect(round.start + round.bridge).toBe(round.landmark);
+        expect(round.bridge + round.remainder).toBe(round.addend);
+        expect(round.bridgeOptions).toContain(round.bridge);
+        expect(round.remainderOptions).toContain(round.remainder);
+        expect(new Set(round.bridgeOptions).size).toBe(round.bridgeOptions.length);
+        expect(new Set(round.remainderOptions).size).toBe(round.remainderOptions.length);
       }
     }
   });

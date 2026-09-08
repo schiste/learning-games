@@ -36,7 +36,7 @@ const TRAIN_GAMES: DecimalGameInfo[] = [
 ];
 
 const MASTER_GAMES: DecimalGameInfo[] = [
-  { id: "machine", label: "La machine", icon: "+10", color: "sun" },
+  { id: "machine", label: "La machine", icon: "⌂", color: "sun" },
   { id: "detective", label: "Le détective", icon: "!", color: "berry" },
   { id: "code", label: "Le code", icon: "#", color: "leaf" },
 ];
@@ -492,80 +492,72 @@ function LineGame({ complexity }: { complexity: Complexity }) {
 
 function MachineGame({ complexity }: { complexity: Complexity }) {
   const [round, setRound] = useState(() => machineRound(complexity));
-  const [history, setHistory] = useState(() => [round.start]);
+  const [bridgeChoice, setBridgeChoice] = useState<number | null>(null);
+  const [remainderChoice, setRemainderChoice] = useState<number | null>(null);
   const [wrong, setWrong] = useState<number | null>(null);
   const [message, setMessage] = useState("");
   const [done, setDone] = useState(false);
-  const [exchangeSteps, setExchangeSteps] = useState<ExchangeStep[]>([]);
-  const [pending, setPending] = useState(false);
+  const [animationStep, setAnimationStep] = useState(0);
   const later = useTimeouts();
-  const current = history[history.length - 1];
-  const moves = history.length - 1;
-  const places = activePlaces(complexity);
-  const previous = history.length > 1 ? history[history.length - 2] : null;
-  const changedPlaces = previous === null ? [] : placeDigits(current, complexity).flatMap((digit, index) => (
-    digit === placeDigits(previous, complexity)[index] ? [] : [index]
-  ));
-  const orderedOperations = [...round.operations].sort((first, second) => second - first);
+  const landmarkName = complexity === 1 ? "dizaine" : complexity === 2 ? "centaine" : "millier";
   const reset = () => {
     const next = machineRound(complexity);
-    setRound(next); setHistory([next.start]); setWrong(null); setMessage(""); setDone(false); setExchangeSteps([]); setPending(false);
+    setRound(next); setBridgeChoice(null); setRemainderChoice(null); setWrong(null); setMessage(""); setDone(false); setAnimationStep(0);
   };
-  const add = (operation: number) => {
-    if (pending) return;
-    if (moves >= round.maxMoves) {
-      setWrong(operation); setMessage("Tous les coups sont utilisés. Reviens en arrière pour changer."); beep(200, 0.2); return;
-    }
-    if (current + operation > round.target) {
-      setWrong(operation); setMessage(`+ ${formatNumber(operation)} ferait dépasser la cible.`); beep(200, 0.2); return;
-    }
-    const next = current + operation;
-    const carries = carryExchanges(current, operation, complexity).map(({ fromIndex, toIndex }) => ({ from: places[fromIndex], to: places[toIndex] }));
-    setWrong(null); setMessage(""); beep(560, 0.08);
-    if (!carries.length) {
-      setHistory((values) => [...values, next]);
-      if (next === round.target) later(() => setDone(true), 550);
+  const chooseBridge = (choice: number) => {
+    if (choice !== round.bridge) {
+      setWrong(choice);
+      setMessage(`Avec ${formatNumber(choice)}, ${formatNumber(round.start)} arrive à ${formatNumber(round.start + choice)}, pas à ${formatNumber(round.landmark)}.`);
+      beep(200, .22);
       return;
     }
-    setPending(true);
-    setExchangeSteps(carries);
-    const animationDuration = carries.length * 1150;
-    later(() => {
-      setHistory((values) => [...values, next]);
-    }, animationDuration - 160);
-    later(() => {
-      setPending(false);
-      setExchangeSteps([]);
-      if (next === round.target) setDone(true);
-    }, animationDuration + 650);
+    beep(660, .1); setBridgeChoice(choice); setWrong(null); setMessage("");
   };
-  const undo = () => {
-    if (pending) return;
-    setHistory((values) => values.length > 1 ? values.slice(0, -1) : values); setWrong(null); setMessage("");
+  const chooseRemainder = (choice: number) => {
+    if (choice !== round.remainder) {
+      setWrong(choice);
+      setMessage(`${formatNumber(round.bridge)} + ${formatNumber(choice)} ne redonne pas ${formatNumber(round.addend)}. Regarde le nombre sur le toit.`);
+      beep(200, .22);
+      return;
+    }
+    beep(760, .1); setRemainderChoice(choice); setWrong(null); setMessage(""); setAnimationStep(1);
+    later(() => { beep(820, .1); setAnimationStep(2); }, 750);
+    later(() => { beep(900, .12); setAnimationStep(3); }, 1550);
   };
-  if (done) return <DecimalCelebration title="La machine est arrivée exactement au bon nombre !" onNext={reset} />;
+  if (done) return <DecimalCelebration title="Tu as calculé en passant par un nombre rond !" onNext={reset}><div className="machine-final-equation">{formatNumber(round.start)} + {formatNumber(round.addend)} = {formatNumber(round.target)}</div></DecimalCelebration>;
   return (
-    <section className="decimal-game-state machine-game" data-scene={sceneData({ start: round.start, current, target: round.target, moves, maxMoves: round.maxMoves, pending, exchanges: exchangeSteps.map((step) => `${step.from.short}->${step.to.short}`) })}>
-      <p className="instruction">Atteins la cible en {round.maxMoves} coups maximum</p>
-      <div className="machine-display">
-        <div><span>Tu es ici</span><PlaceNumber number={current} complexity={complexity} highlighted={changedPlaces} /></div>
-        <i aria-hidden="true">→</i>
-        <div><span>Cible</span><PlaceNumber number={round.target} complexity={complexity} /></div>
+    <section className="decimal-game-state machine-game addition-house-game" data-scene={sceneData({
+      mode: "addition-house",
+      phase: bridgeChoice === null ? "bridge" : remainderChoice === null ? "remainder" : animationStep < 3 ? "calculation" : "result",
+      start: round.start,
+      addend: round.addend,
+      landmark: round.landmark,
+      bridge: round.bridge,
+      remainder: round.remainder,
+      target: round.target,
+      bridgeChoice,
+      remainderChoice,
+      animationStep,
+    })}>
+      <p className="instruction">Découpe le nombre ajouté pour passer par la prochaine {landmarkName}</p>
+      <div className="machine-question" aria-label={`${round.start} plus ${round.addend}`}>
+        <strong>{formatNumber(round.start)}</strong><span>+</span><strong>{formatNumber(round.addend)}</strong><span>=</span><strong>?</strong>
       </div>
-      <div className="machine-distance">Il reste <strong>{formatNumber(round.target - current)}</strong> à ajouter</div>
-      {pending ? <ExchangeAnimation steps={exchangeSteps} /> : (
-        <div className={`machine-operations operations-${orderedOperations.length}`} aria-label="Ajouter par position, des milliers vers les unités">
-          {orderedOperations.map((operation) => {
-            const place = places.find((candidate) => candidate.value === operation)!;
-            return <button key={operation} className={`place-${place.color} ${wrong === operation ? "is-wrong" : ""}`} onClick={() => add(operation)}><strong>+ {formatNumber(operation)}</strong><small>1 {singularPlace(place.name)}</small></button>;
-          })}
+      <div className={`addition-house ${animationStep > 0 ? "is-running" : ""}`}>
+        <div className="house-roof"><small>Je découpe</small><strong>{formatNumber(round.addend)}</strong></div>
+        <div className="house-body">
+          <div className={bridgeChoice !== null ? "is-filled" : ""}><small>Pour aller à {formatNumber(round.landmark)}</small><strong>{bridgeChoice === null ? "?" : formatNumber(bridgeChoice)}</strong></div>
+          <div className={remainderChoice !== null ? "is-filled" : ""}><small>Ce qui reste</small><strong>{remainderChoice === null ? "?" : formatNumber(remainderChoice)}</strong></div>
         </div>
-      )}
-      <div className="machine-status" aria-label={`${moves} coups utilisés sur ${round.maxMoves}`}>
-        {Array.from({ length: round.maxMoves }, (_, index) => <i className={index < moves ? "is-used" : ""} key={index} />)}
-        <span>{round.maxMoves - moves} coup{round.maxMoves - moves > 1 ? "s" : ""} encore disponible{round.maxMoves - moves > 1 ? "s" : ""}</span>
       </div>
-      <button className="undo-button" onClick={undo} disabled={history.length === 1 || pending}>↶ Revenir</button>
+      {bridgeChoice === null && <div className="house-step"><p>Combien faut-il ajouter à {formatNumber(round.start)} pour arriver à {formatNumber(round.landmark)} ?</p><div className="house-options">{round.bridgeOptions.map((option) => <button key={option} data-value={option} className={wrong === option ? "is-wrong" : ""} onClick={() => chooseBridge(option)}>{formatNumber(option)}</button>)}</div></div>}
+      {bridgeChoice !== null && remainderChoice === null && <div className="house-step"><p>{formatNumber(round.addend)} est partagé en {formatNumber(round.bridge)} et combien ?</p><div className="house-options">{round.remainderOptions.map((option) => <button key={option} data-value={option} className={wrong === option ? "is-wrong" : ""} onClick={() => chooseRemainder(option)}>{formatNumber(option)}</button>)}</div><button className="undo-button" onClick={() => { setBridgeChoice(null); setWrong(null); setMessage(""); }}>↶ Changer le premier morceau</button></div>}
+      {remainderChoice !== null && <div className="house-calculation" aria-live="polite">
+        <div className={animationStep >= 1 ? "is-visible" : ""}><span>1</span><strong>{formatNumber(round.start)} + {formatNumber(round.bridge)} = {formatNumber(round.landmark)}</strong><small>J’atteins la {landmarkName}</small></div>
+        <i className={animationStep >= 2 ? "is-visible" : ""} aria-hidden="true">→</i>
+        <div className={animationStep >= 2 ? "is-visible" : ""}><span>2</span><strong>{formatNumber(round.landmark)} + {formatNumber(round.remainder)} = {formatNumber(round.target)}</strong><small>J’ajoute ce qui reste</small></div>
+      </div>}
+      {animationStep >= 3 && <DecimalButton color="sun" onClick={() => setDone(true)}>J’ai compris</DecimalButton>}
       <DecimalFeedback message={message} />
     </section>
   );

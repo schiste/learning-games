@@ -3,7 +3,16 @@ import { randomInt, shuffle, type Complexity } from "./gameLogic";
 export type Place = { name: string; short: string; value: number; color: string };
 export type CounterRound = { start: number; operation: number; answer: number; options: number[] };
 export type LineRound = { values: number[]; missingIndex: number; answer: number; options: number[] };
-export type MachineRound = { start: number; target: number; operations: number[]; maxMoves: number };
+export type MachineRound = {
+  start: number;
+  addend: number;
+  landmark: number;
+  bridge: number;
+  remainder: number;
+  target: number;
+  bridgeOptions: number[];
+  remainderOptions: number[];
+};
 export type CarryExchange = { fromIndex: number; toIndex: number };
 export type DetectiveCard = {
   kind: "places" | "products";
@@ -109,22 +118,32 @@ export function carryExchanges(number: number, operation: number, complexity: Co
 }
 
 export function machineRound(complexity: Complexity): MachineRound {
-  const rounds: Record<Complexity, MachineRound[]> = {
+  const rounds: Record<Complexity, Array<Omit<MachineRound, "bridgeOptions" | "remainderOptions">>> = {
     1: [
-      { start: 19, target: 30, operations: [10, 1], maxMoves: 2 },
-      { start: 48, target: 60, operations: [10, 1], maxMoves: 3 },
+      { start: 28, addend: 7, landmark: 30, bridge: 2, remainder: 5, target: 35 },
+      { start: 47, addend: 8, landmark: 50, bridge: 3, remainder: 5, target: 55 },
+      { start: 68, addend: 5, landmark: 70, bridge: 2, remainder: 3, target: 73 },
+      { start: 76, addend: 9, landmark: 80, bridge: 4, remainder: 5, target: 85 },
     ],
     2: [
-      { start: 99, target: 210, operations: [100, 10, 1], maxMoves: 3 },
-      { start: 190, target: 310, operations: [100, 10, 1], maxMoves: 3 },
+      { start: 185, addend: 37, landmark: 200, bridge: 15, remainder: 22, target: 222 },
+      { start: 268, addend: 54, landmark: 300, bridge: 32, remainder: 22, target: 322 },
+      { start: 375, addend: 48, landmark: 400, bridge: 25, remainder: 23, target: 423 },
+      { start: 492, addend: 36, landmark: 500, bridge: 8, remainder: 28, target: 528 },
     ],
     3: [
-      { start: 999, target: 2100, operations: [1000, 100, 10, 1], maxMoves: 3 },
-      { start: 1990, target: 3100, operations: [1000, 100, 10, 1], maxMoves: 3 },
+      { start: 1875, addend: 260, landmark: 2000, bridge: 125, remainder: 135, target: 2135 },
+      { start: 2460, addend: 680, landmark: 3000, bridge: 540, remainder: 140, target: 3140 },
+      { start: 3980, addend: 145, landmark: 4000, bridge: 20, remainder: 125, target: 4125 },
+      { start: 4755, addend: 390, landmark: 5000, bridge: 245, remainder: 145, target: 5145 },
     ],
   };
   const round = rounds[complexity][randomInt(0, rounds[complexity].length - 1)];
-  return { ...round, operations: [...round.operations] };
+  return {
+    ...round,
+    bridgeOptions: nearbyOptions(round.bridge, complexity, complexity + 2),
+    remainderOptions: nearbyOptions(round.remainder, complexity, complexity + 2),
+  };
 }
 
 export function detectiveRound(complexity: Complexity): DetectiveRound {

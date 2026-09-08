@@ -1274,7 +1274,7 @@ export default function App() {
         grade: coreStage?.dataset.grade ?? null,
         complexity: Number(coreStage?.dataset.complexity ?? readingStage?.dataset.complexity ?? decimalStage?.dataset.complexity ?? complexity),
         instruction: stage?.querySelector(".instruction")?.textContent?.trim() ?? null,
-        equation: stage?.querySelector(".equation, .bowling-equation, .cash-equation")?.textContent?.trim() ?? null,
+        equation: stage?.querySelector(".equation, .bowling-equation, .cash-equation, .machine-question")?.textContent?.trim() ?? null,
         feedback: stage?.querySelector(".mistake-feedback.is-visible")?.textContent?.trim() ?? null,
         scene: coreState
           ? JSON.parse(coreState.dataset.scene ?? "null")

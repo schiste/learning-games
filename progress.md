@@ -14,6 +14,8 @@ Current reading prompt: Add a new space for learning to read according to the Le
 
 Current cycle-2 prompt: Implement all ten proposed fundamental spaces: addition/subtraction, multiplication/sharing, spelling/dictation, fractions, problem solving, time, money, grammar/conjugation, measurement, and geometry.
 
+Current machine prompt: Record the future CE1 curriculum/timeline redesign as a GitHub issue, then rebuild « La machine » around the addition-house calculation method.
+
 ## Progress
 
 - 2026-09-05: Defined three shared complexity grades: Découverte, Entraînement, Défi.
@@ -52,6 +54,10 @@ Current cycle-2 prompt: Implement all ten proposed fundamental spaces: addition/
 - 2026-09-06: Implemented the ten Cycle 2 spaces and all 90 named mini-games across « Je découvre », « Je m’entraîne » and « Je maîtrise ». Six reusable interaction engines cover choices, construction, ordering, sorting, bounded movement and timed answers while each game keeps its own prompt, representation and feedback.
 - 2026-09-06: Added CP/CE1/CE2 corpus variants, per-game Guided/Repères/Autonome support, spoken spelling prompts, exact fraction/clock/coin visuals, visible timed markers, keyboard numeric input and the same progressive 60-second background used elsewhere.
 - 2026-09-06: Automated generation checks cover all 810 game/class/support combinations. Browser audits rendered all 90 games, completed every activity once, verified wrong-answer recovery, keyboard scoring, timer completion and a 360 px layout with no horizontal page overflow or console errors.
+- 2026-09-08: Created GitHub issue #1 for a CE1-first curriculum architecture: horizontal subject timelines, official 2025 cycle-2 objectives, contextual CP prerequisites, preserved discovery/training/mastery stages and independent support levels.
+- 2026-09-08: Interpreted the requested addition-house method as decomposing the second addend into a bridge to the next round number and a remainder (`48 + 7 = 48 + 2 + 5`). Planned La machine as a two-choice house followed by an animated calculation path.
+- 2026-09-08: Rebuilt La machine as an addition house: the child first finds the bridge to the next ten, hundred or thousand, then reconstructs the second addend with the remainder and watches the two calculation steps land in sequence. Wrong choices remain visible and receive a precise, non-punitive explanation.
+- 2026-09-08: Added invariant tests for all house rounds and audited the complete decimal path in a real browser: 9 games × 3 levels, keyboard flow, topic switching, animation phases and a 360 px viewport all pass without console errors or horizontal overflow.
 
 ## TODO
 
