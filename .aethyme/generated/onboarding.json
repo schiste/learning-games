@@ -1,0 +1,339 @@
+{
+  "schema_version": "aethyme-onboarding-v2",
+  "repo": {
+    "name": "learning-games",
+    "root": ".",
+    "kind": "application",
+    "languages": [
+      "typescript"
+    ],
+    "primary_language": "typescript",
+    "package_manager": "npm",
+    "manifests": [
+      "package.json"
+    ]
+  },
+  "workspaces": [
+    {
+      "root": ".",
+      "manifest": {
+        "path": "package.json",
+        "kind": "node"
+      },
+      "package_manager": "npm",
+      "languages": [
+        "typescript"
+      ],
+      "members": [],
+      "lockfiles": [
+        "package-lock.json"
+      ],
+      "candidate_commands": [
+        {
+          "kind": "fast_test",
+          "command": "npm run test",
+          "source": "package.json",
+          "confidence": "high"
+        },
+        {
+          "kind": "lint",
+          "command": "npm run lint",
+          "source": "package.json",
+          "confidence": "high"
+        },
+        {
+          "kind": "build",
+          "command": "npm run build",
+          "source": "package.json",
+          "confidence": "high"
+        },
+        {
+          "kind": "dev",
+          "command": "npm run dev",
+          "source": "package.json",
+          "confidence": "high"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "tracked_manifest",
+          "detail": "package.json",
+          "confidence": "high"
+        },
+        {
+          "kind": "root_manifest",
+          "detail": "manifest is at repository root",
+          "confidence": "high"
+        }
+      ],
+      "confidence": "high",
+      "primary": true,
+      "ranking": {
+        "root_manifest": true,
+        "declares_workspace": false,
+        "member_count": 0,
+        "ci_mentions": 0,
+        "executable_entrypoints": 0,
+        "source_files": 16
+      }
+    }
+  ],
+  "primary_workspace": {
+    "root": ".",
+    "manifest": {
+      "path": "package.json",
+      "kind": "node"
+    },
+    "package_manager": "npm",
+    "languages": [
+      "typescript"
+    ],
+    "members": [],
+    "lockfiles": [
+      "package-lock.json"
+    ],
+    "candidate_commands": [
+      {
+        "kind": "fast_test",
+        "command": "npm run test",
+        "source": "package.json",
+        "confidence": "high"
+      },
+      {
+        "kind": "lint",
+        "command": "npm run lint",
+        "source": "package.json",
+        "confidence": "high"
+      },
+      {
+        "kind": "build",
+        "command": "npm run build",
+        "source": "package.json",
+        "confidence": "high"
+      },
+      {
+        "kind": "dev",
+        "command": "npm run dev",
+        "source": "package.json",
+        "confidence": "high"
+      }
+    ],
+    "evidence": [
+      {
+        "kind": "tracked_manifest",
+        "detail": "package.json",
+        "confidence": "high"
+      },
+      {
+        "kind": "root_manifest",
+        "detail": "manifest is at repository root",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "primary": true,
+    "ranking": {
+      "root_manifest": true,
+      "declares_workspace": false,
+      "member_count": 0,
+      "ci_mentions": 0,
+      "executable_entrypoints": 0,
+      "source_files": 16
+    }
+  },
+  "commands": [
+    {
+      "kind": "install",
+      "command": "npm install",
+      "source": "package.json",
+      "confidence": "high"
+    },
+    {
+      "kind": "dev",
+      "command": "npm run dev",
+      "source": "package.json",
+      "confidence": "high",
+      "workspace_root": ".",
+      "provenance": "derived from tracked workspace manifest"
+    },
+    {
+      "kind": "fast_test",
+      "command": "npm run test",
+      "source": "package.json",
+      "confidence": "high",
+      "workspace_root": ".",
+      "provenance": "derived from tracked workspace manifest"
+    },
+    {
+      "kind": "lint",
+      "command": "npm run lint",
+      "source": "package.json",
+      "confidence": "high",
+      "workspace_root": ".",
+      "provenance": "derived from tracked workspace manifest"
+    },
+    {
+      "kind": "build",
+      "command": "npm run build",
+      "source": "package.json",
+      "confidence": "high",
+      "workspace_root": ".",
+      "provenance": "derived from tracked workspace manifest"
+    },
+    {
+      "kind": "primary-script",
+      "command": "npm dev",
+      "source": "package.json:scripts.dev",
+      "confidence": "medium"
+    }
+  ],
+  "primary_commands": {
+    "install": "npm install",
+    "dev": "npm run dev",
+    "fast_test": "npm run test",
+    "lint": "npm run lint",
+    "build": "npm run build"
+  },
+  "areas": [
+    {
+      "path": ".github",
+      "role": "automation",
+      "reason": "automation and CI configuration",
+      "confidence": "high"
+    },
+    {
+      "path": "public",
+      "role": "assets",
+      "reason": "public assets or static files",
+      "confidence": "high"
+    },
+    {
+      "path": "src",
+      "role": "source",
+      "reason": "conventional source directory",
+      "confidence": "high"
+    }
+  ],
+  "entrypoints": [
+    {
+      "path": "package.json:scripts.dev",
+      "kind": "script",
+      "role": "app",
+      "reason": "package dev script",
+      "confidence": "medium",
+      "relevance": "supporting"
+    },
+    {
+      "path": "package.json:scripts.test",
+      "kind": "script",
+      "role": "test",
+      "reason": "package test script",
+      "confidence": "medium",
+      "relevance": "supporting"
+    }
+  ],
+  "primary_entrypoints": {
+    "app": {
+      "path": "package.json:scripts.dev",
+      "kind": "script",
+      "role": "app",
+      "reason": "package dev script",
+      "confidence": "medium",
+      "relevance": "supporting"
+    },
+    "test": {
+      "path": "package.json:scripts.test",
+      "kind": "script",
+      "role": "test",
+      "reason": "package test script",
+      "confidence": "medium",
+      "relevance": "supporting"
+    }
+  },
+  "caution_zones": [],
+  "generated_paths": [
+    {
+      "path": ".aethyme/generated",
+      "reason": "tracked generated or vendored surface; verify ownership before editing",
+      "provenance": "tracked path classification"
+    }
+  ],
+  "dangerous_paths": [
+    {
+      "path": ".github/workflows",
+      "reason": "repository automation; changes can affect publication or shared CI",
+      "provenance": "tracked path classification"
+    }
+  ],
+  "navigation_recipes": [
+    {
+      "purpose": "Broad repository orientation for a user request",
+      "command": "aethyme explore --repo \"$PWD\" --request \"<task>\" --format answer-json"
+    },
+    {
+      "purpose": "Quick deterministic repo summary",
+      "command": "aethyme repo inspect \"$PWD\" --mode brief --json-output"
+    },
+    {
+      "purpose": "Trace likely impact before editing",
+      "command": "aethyme graph callers \"$PWD\" \"<symbol-or-file>\" --json-output"
+    }
+  ],
+  "summon": {
+    "description": "Use when starting work in an unfamiliar repository, when the task asks for repo overview, setup, architecture, entrypoints, test commands, or where to begin. Skip for narrow file-scoped edits once the relevant paths are already known.",
+    "recommended_when": [
+      "first task in repo",
+      "repo overview",
+      "setup or run instructions",
+      "architecture or entrypoints",
+      "where should I start",
+      "broad debugging or feature-localization request"
+    ],
+    "skip_when": [
+      "known file-scoped edit",
+      "follow-up inside already identified area",
+      "task already localized to concrete files"
+    ],
+    "task_signals": [
+      "unfamiliar repository",
+      "broad task with no path named",
+      "user asks how the repo is organized"
+    ]
+  },
+  "freshness": {
+    "source_digest": "65e450e1cb1af226fd3971df822ed88cd8e763df13e5541ef77e6020b9ecb435",
+    "source_commit": null,
+    "source_file_count": 37,
+    "generator": "deterministic"
+  },
+  "telemetry": {
+    "sections": [
+      "repo",
+      "workspaces",
+      "primary_workspace",
+      "commands",
+      "areas",
+      "entrypoints",
+      "caution_zones",
+      "generated_paths",
+      "dangerous_paths",
+      "navigation_recipes",
+      "summon",
+      "freshness"
+    ],
+    "counts": {
+      "workspaces": 1,
+      "commands": 6,
+      "areas": 3,
+      "entrypoints": 2,
+      "caution_zones": 0,
+      "generated_paths": 1,
+      "dangerous_paths": 1,
+      "navigation_recipes": 3,
+      "notes": 0
+    },
+    "overrides_applied": false,
+    "override_source": null,
+    "override_invalid": false
+  }
+}
