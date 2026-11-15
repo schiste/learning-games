@@ -25,9 +25,9 @@ import {
 } from "./logic";
 import { activeProfile, chapterScore, createProfile, loadStore, recordStep, removeProfile, saveStore, suggestedStep, type ProfileStore } from "./profiles";
 import { nearbyChoices } from "./random";
-import { factSetUnlocks, unlockedFactSets } from "./curriculum";
-import { FACT_SET_INFO, factByKey, factsIn, isMastered, reviewQueue, sprintFact, updateFact, type FactSet } from "./facts";
-import { markPlayed } from "./profiles";
+import { chronoReady, chronoSteps, factSetUnlocks, unlockedFactSets } from "./curriculum";
+import { FACT_SET_INFO, factByKey, factDifficulty, factsIn, factStrategy, isMastered, reviewQueue, SET_STRATEGY, sprintFact, sprintSets, updateFact, type FactSet } from "./facts";
+import { chronoRecord, markPlayed, recordChrono, type Profile } from "./profiles";
 import { clockRound, coinsRound, fewestCoins, formatTime, fractionRound, fractionWords, handAngles, problemRound } from "./everyday";
 import { countSolutions, mysteryRound, patternRound, sudokuConflict, sudokuRound } from "./puzzles";
 
@@ -487,8 +487,72 @@ describe("facts", () => {
   });
 });
 
+describe("fluency practice (IES 2021, recommendation 6)", () => {
+  const sets = Object.keys(FACT_SET_INFO) as FactSet[];
+
+  it.each(sets)("every %s fact has a strategy that leads to its answer, and the set has a reminder", (set) => {
+    expect(SET_STRATEGY[set]).toMatch(/Astuce/);
+    for (const fact of factsIn(set)) {
+      const hint = factStrategy(fact);
+      expect(hint.length).toBeGreaterThan(10);
+      expect(hint).toContain(String(fact.answer));
+    }
+  });
+
+  it("ranks the classic easy facts first: +1, doubles, ×2, ×5 and ×10 before ×7", () => {
+    const fact = (key: string) => factByKey(key)!;
+    expect(factDifficulty(fact("add10:5:1"))).toBeLessThan(factDifficulty(fact("add10:4:5")));
+    expect(factDifficulty(fact("tables:2:8"))).toBeLessThan(factDifficulty(fact("tables:7:8")));
+    expect(factDifficulty(fact("tables:5:7"))).toBeLessThan(factDifficulty(fact("tables:6:7")));
+    expect(factDifficulty(fact("add20:9:4"))).toBeLessThan(factDifficulty(fact("add20:6:8")));
+  });
+
+  it("starts a sprint with easier facts and widens to the whole set as the child succeeds", () => {
+    const average = (progress: number) => {
+      let total = 0;
+      for (let run = 0; run < 600; run += 1) total += factDifficulty(sprintFact("tables", {}, Math.random, undefined, progress));
+      return total / 600;
+    };
+    expect(average(0)).toBeLessThan(average(1) - 0.5);
+    const hardest = factsIn("tables").reduce((worst, fact) => (factDifficulty(fact) > factDifficulty(worst) ? fact : worst));
+    let reached = false;
+    for (let run = 0; run < 2000 && !reached; run += 1) reached = sprintFact("tables", {}, Math.random, undefined, 1).key === hardest.key;
+    expect(reached).toBe(true);
+  });
+
+  it("mixes only the listed sets the child has met, or all listed ones at first", () => {
+    expect(sprintSets("doubles", undefined, [])).toEqual(["doubles"]);
+    expect(sprintSets("mixed", ["add10", "sub10", "tables"], ["add10", "tables", "doubles"])).toEqual(["add10", "tables"]);
+    expect(sprintSets("mixed", ["add20", "sub20"], [])).toEqual(["add20", "sub20"]);
+  });
+
+  it("gives full stars for meeting or beating one's own record", () => {
+    expect(sprintStars(9, 9)).toBe(3);
+    expect(sprintStars(10, 9)).toBe(3);
+    expect(sprintStars(8, 9)).toBe(2);
+    expect(sprintStars(4, 3)).toBe(1);
+    expect(sprintStars(15)).toBe(3);
+  });
+
+  it("keeps a private, bounded history and its record", () => {
+    let player: Profile = { id: "a", name: "A", avatar: "🦊", points: 0, steps: {}, facts: {}, chrono: {}, streak: 0, lastDay: 0 };
+    for (let score = 1; score <= 25; score += 1) player = recordChrono(player, "sprint-10", score % 7);
+    expect(player.chrono["sprint-10"]).toHaveLength(20);
+    expect(chronoRecord(player, "sprint-10")).toBe(6);
+    expect(chronoRecord(player, "never")).toBe(0);
+  });
+
+  it("advises a chrono only after the steps that teach it", () => {
+    const sprint = chronoSteps().find(({ step }) => step.id === "sprint-20")!.step;
+    expect(chronoReady(sprint, () => false).ready).toBe(false);
+    expect(chronoReady(sprint, () => false).missing.map((step) => step.id)).toContain("bridge-add");
+    expect(chronoReady(sprint, () => true).ready).toBe(true);
+    expect(chronoSteps().every(({ step }) => step.engine === "sprint")).toBe(true);
+  });
+});
+
 describe("streak", () => {
-  const base = { id: "a", name: "A", avatar: "🦊", points: 0, steps: {}, facts: {}, streak: 0, lastDay: 0 };
+  const base = { id: "a", name: "A", avatar: "🦊", points: 0, steps: {}, facts: {}, chrono: {}, streak: 0, lastDay: 0 };
   it("grows on consecutive days and restarts after a gap", () => {
     const day1 = markPlayed(base, 50);
     expect(markPlayed(day1, 50).streak).toBe(1);

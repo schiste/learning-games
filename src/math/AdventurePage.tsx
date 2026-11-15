@@ -1,13 +1,16 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { speakFrench } from "../audio";
-import { ALL_STEPS, CHAPTERS, factSetUnlocks, findStep, unlockedFactSets, type Chapter } from "./curriculum";
+import { ALL_STEPS, CHAPTERS, chronoSteps, factSetUnlocks, findStep, unlockedFactSets, type Chapter } from "./curriculum";
 import { FactMemoryContext, type FactMemory } from "./factMemory";
 import { dueCount, reviewQueue, today, updateFact, type FactItem } from "./facts";
+import ChronoPage from "./ChronoPage";
 import MasteryPage from "./MasteryPage";
 import ReviewPlayer from "./ReviewPlayer";
 import {
   activeProfile,
   addPoints,
+  chronoRecord,
+  recordChrono,
   markPlayed,
   chapterScore,
   createProfile,
@@ -56,6 +59,8 @@ export default function AdventurePage({ stepId, onOpen }: { stepId: string | nul
   const setsInReview = unlockedFactSets((id) => Boolean(profile.steps[id]));
   const memory: FactMemory = {
     facts: profile.facts,
+    sets: setsInReview,
+    history: current ? profile.chrono[current.step.id] ?? [] : [],
     record: (key, firstTry, ms) => change((before) => updateProfile(before, profile.id, (player) => ({
       ...player,
       facts: { ...player.facts, [key]: updateFact(player.facts[key], firstTry, ms, today()) },
@@ -78,6 +83,10 @@ export default function AdventurePage({ stepId, onOpen }: { stepId: string | nul
     );
   }
 
+  if (stepId === "chrono") {
+    return <ChronoPage profile={profile} onBack={() => onOpen(null)} onOpen={onOpen} />;
+  }
+
   if (stepId === "progres") {
     return <MasteryPage profile={profile} onBack={() => onOpen(null)} onOpen={onOpen} />;
   }
@@ -89,8 +98,12 @@ export default function AdventurePage({ stepId, onOpen }: { stepId: string | nul
         step={current.step}
         chapter={current.chapter}
         previousBest={profile.steps[current.step.id]?.best ?? 0}
+        history={profile.chrono[current.step.id] ?? []}
         onOpen={onOpen}
-        onFinish={(stars, points) => change((before) => updateProfile(before, profile.id, (player) => markPlayed(recordStep(player, current.step.id, stars, points), today())))}
+        onFinish={(stars, points, score) => change((before) => updateProfile(before, profile.id, (player) => {
+          const recorded = markPlayed(recordStep(player, current.step.id, stars, points), today());
+          return score === undefined ? recorded : recordChrono(recorded, current.step.id, score);
+        }))}
       />,
     );
   }
@@ -131,6 +144,10 @@ export default function AdventurePage({ stepId, onOpen }: { stepId: string | nul
           </span>
           {due > 0 && <b className="m-due">{due}</b>}
         </button>
+        <button className="m-basics-card accent-berry is-chrono" onClick={() => onOpen("chrono")}>
+          <span className="m-basics-icon" aria-hidden="true">⏱</span>
+          <span><strong>Défis chrono</strong><small>{chronoBest(profile)}</small></span>
+        </button>
         <button className="m-basics-card accent-teal" onClick={() => onOpen("progres")}>
           <span className="m-basics-icon" aria-hidden="true">📊</span>
           <span><strong>Mes progrès</strong><small>Ce que je sais par cœur</small></span>
@@ -170,7 +187,7 @@ function ChapterTrail({ chapter, number, profile, suggestedId, onOpen }: {
           return (
             <li key={step.id}>
               <button
-                className={`m-step ${record ? "is-done" : ""} ${step.id === suggestedId ? "is-next" : ""}`}
+                className={`m-step ${record ? "is-done" : ""} ${step.id === suggestedId ? "is-next" : ""} ${step.engine === "sprint" ? "is-timed" : ""}`}
                 onClick={() => onOpen(step.id)}
                 aria-label={`${step.title}. ${step.goal}${record ? `. ${record.stars} étoiles, record ${record.best} points` : ""}`}
               >
@@ -178,7 +195,7 @@ function ChapterTrail({ chapter, number, profile, suggestedId, onOpen }: {
                 <span className="m-step-title">{step.title}</span>
                 {record
                   ? <><Stars value={record.stars} size="sm" /><span className="m-step-best">🏆 {record.best}</span></>
-                  : <span className="m-step-grade">{step.grade}</span>}
+                  : <span className="m-step-grade">{step.engine === "sprint" ? "⏱ 60 s · " : ""}{step.grade}</span>}
               </button>
               <button className="m-step-listen" onClick={() => speakFrench(step.goal)} aria-label={`Écouter : ${step.goal}`}>🔊</button>
             </li>
@@ -187,6 +204,12 @@ function ChapterTrail({ chapter, number, profile, suggestedId, onOpen }: {
       </ol>
     </section>
   );
+}
+
+/** One line for the chrono card: how many timed minutes have a record, or an invitation. */
+function chronoBest(profile: Profile): string {
+  const played = chronoSteps().filter(({ step }) => chronoRecord(profile, step.id) > 0).length;
+  return played ? `${played} / ${chronoSteps().length} records à battre` : "Une minute pour aller vite et juste";
 }
 
 /** Picks today's review once, when the session opens, so answering does not reshuffle it. */
