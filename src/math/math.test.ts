@@ -39,7 +39,7 @@ describe("count", () => {
       expect(round.count).toBeGreaterThanOrEqual(10);
       expect(round.count).toBeLessThanOrEqual(20);
       expect(new Set(round.cells).size).toBe(round.count);
-      expect(round.cells.every((cell) => cell >= 0 && cell < 20)).toBe(true);
+      expect(round.cells.every((cell) => cell >= 0 && cell < round.gridSize)).toBe(true);
       expect(round.choices).toContain(round.count);
     }
   });
