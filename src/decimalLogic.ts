@@ -1,4 +1,5 @@
-import { randomInt, shuffle, type Complexity } from "./gameLogic";
+import { type Complexity } from "./levels";
+import { randomInt, shuffle } from "./math/random";
 
 export type Place = { name: string; short: string; value: number; color: string };
 export type CounterRound = { start: number; operation: number; answer: number; options: number[] };

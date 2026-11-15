@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { beep, fanfare, speakFrench } from "./audio";
-import { type Complexity } from "./gameLogic";
+import { type Complexity } from "./levels";
 import {
   CORE_SPACES,
   makeCoreRound,

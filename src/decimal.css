@@ -12,6 +12,8 @@
 }
 
 .topic-switch a {
+  gap: 6px;
+  grid-auto-flow: column;
   min-height: 42px;
   padding: 9px 18px;
   display: grid;

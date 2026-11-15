@@ -1,4 +1,4 @@
-import { type Complexity } from "./gameLogic";
+import { type Complexity } from "./levels";
 
 export type ReadingWord = {
   text: string;
