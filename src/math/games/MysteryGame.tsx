@@ -20,7 +20,7 @@ export default function MysteryGame({ config, onSolved }: RoundProps<MysteryConf
   const tap = (value: number) => {
     if (solved) return;
     if (crossing) {
-      setCrossed(crossed.includes(value) ? crossed.filter((item) => item !== value) : [...crossed, value]);
+      setCrossed((before) => (before.includes(value) ? before.filter((item) => item !== value) : [...before, value]));
       beep(crossed.includes(value) ? 520 : 360, 0.05);
       return;
     }

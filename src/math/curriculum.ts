@@ -1,4 +1,5 @@
 import type { FactSet } from "./facts";
+import type { ClockConfig, CoinsConfig, FractionConfig, ProblemConfig } from "./everyday";
 import type { MysteryConfig, PatternConfig, SudokuConfig } from "./puzzles";
 import type { BlocksConfig, BondsConfig, BridgeConfig, BuildConfig, CompareConfig, CountConfig, FlashConfig, GroupsConfig, LineConfig, ShareConfig, SprintConfig } from "./logic";
 
@@ -20,7 +21,11 @@ export type StepGame =
   | { engine: "share"; config: ShareConfig }
   | { engine: "pattern"; config: PatternConfig }
   | { engine: "mystery"; config: MysteryConfig }
-  | { engine: "sudoku"; config: SudokuConfig };
+  | { engine: "sudoku"; config: SudokuConfig }
+  | { engine: "clock"; config: ClockConfig }
+  | { engine: "coins"; config: CoinsConfig }
+  | { engine: "problem"; config: ProblemConfig }
+  | { engine: "fraction"; config: FractionConfig };
 
 export type EngineId = StepGame["engine"];
 
@@ -112,6 +117,32 @@ export const CHAPTERS: Chapter[] = [
     ],
   },
   {
+    id: "problems",
+    title: "Problèmes",
+    icon: "📖",
+    color: "sun",
+    steps: [
+      { id: "story-add", title: "Les histoires", goal: "J’écoute l’histoire : on ajoute ou on enlève ?", grade: "CP", rounds: 5, engine: "problem", config: { kinds: ["join", "separate"], max: 20 } },
+      { id: "story-compare", title: "Combien de plus ?", goal: "Je compare deux quantités avec la barre.", grade: "CE1", rounds: 5, engine: "problem", config: { kinds: ["join", "separate", "compare"], max: 50 } },
+      { id: "story-times", title: "Les boîtes", goal: "Des groupes égaux ou un partage ?", grade: "CE1", rounds: 5, engine: "problem", config: { kinds: ["groups", "share", "join"], max: 40 } },
+      { id: "story-mix", title: "Le grand mélange", goal: "Tous les problèmes : je choisis le bon calcul.", grade: "CE2", rounds: 6, engine: "problem", config: { kinds: ["join", "separate", "compare", "groups", "share"], max: 100 } },
+    ],
+  },
+  {
+    id: "everyday",
+    title: "L’heure et la monnaie",
+    icon: "🕒",
+    color: "teal",
+    steps: [
+      { id: "coins-10", title: "La boutique", goal: "Je paie avec des pièces de 1 € et 2 €.", grade: "CP", rounds: 5, engine: "coins", config: { max: 10, values: [1, 2] } },
+      { id: "clock-hours", title: "Les heures", goal: "La petite aiguille montre l’heure.", grade: "CP", rounds: 5, engine: "clock", config: { minutes: [0] } },
+      { id: "clock-half", title: "Et demie", goal: "Quand la grande aiguille est en bas : et demie.", grade: "CE1", rounds: 5, engine: "clock", config: { minutes: [0, 30] } },
+      { id: "coins-50", title: "Le marché", goal: "Je paie avec des billets et des pièces.", grade: "CE1", rounds: 5, engine: "coins", config: { max: 50, values: [1, 2, 5, 10, 20] } },
+      { id: "clock-quarter", title: "Les quarts d’heure", goal: "Et quart, et demie, moins le quart.", grade: "CE2", rounds: 5, engine: "clock", config: { minutes: [0, 15, 30, 45] } },
+      { id: "clock-five", title: "Les minutes", goal: "La grande aiguille avance de 5 minutes par chiffre.", grade: "CE2", rounds: 5, engine: "clock", config: { minutes: [5] } },
+    ],
+  },
+  {
     id: "big",
     title: "Les grands nombres",
     icon: "🏰",
@@ -139,6 +170,18 @@ export const CHAPTERS: Chapter[] = [
       { id: "array-6-9", title: "Les grands rectangles", goal: "Les tables de 6, 7, 8 et 9.", grade: "CE2", rounds: 6, engine: "groups", config: { tables: [6, 7, 8, 9], maxSize: 9, layout: "array" } },
       { id: "share-left", title: "Le partage et le reste", goal: "Parfois, il en reste : c’est le reste.", grade: "CE2", rounds: 4, engine: "share", config: { maxFriends: 5, maxEach: 6, remainder: true } },
       { id: "sprint-tables", title: "Chrono de toutes les tables", goal: "Une minute de tables de 2 à 9.", grade: "CE2", rounds: 1, engine: "sprint", config: { facts: "tables", seconds: 60 } },
+    ],
+  },
+  {
+    id: "fractions",
+    title: "Les fractions",
+    icon: "🍫",
+    color: "berry",
+    steps: [
+      { id: "fraction-unit", title: "Un morceau", goal: "Un demi, un tiers, un quart : des parts égales.", grade: "CE1", rounds: 5, engine: "fraction", config: { denominators: [2, 3, 4], mode: "read", unitOnly: true } },
+      { id: "fraction-color-unit", title: "Je colorie", goal: "Je colorie la bonne part.", grade: "CE1", rounds: 5, engine: "fraction", config: { denominators: [2, 3, 4], mode: "color", unitOnly: true } },
+      { id: "fraction-read", title: "Plusieurs morceaux", goal: "Le nombre du bas : les parts. Le nombre du haut : celles qu’on prend.", grade: "CE2", rounds: 5, engine: "fraction", config: { denominators: [3, 4, 5, 6, 8], mode: "read", unitOnly: false } },
+      { id: "fraction-color", title: "Le chocolat", goal: "Je colorie trois quarts, deux cinquièmes…", grade: "CE2", rounds: 5, engine: "fraction", config: { denominators: [3, 4, 5, 6, 8, 10], mode: "color", unitOnly: false } },
     ],
   },
   {
@@ -192,6 +235,10 @@ export function roundSeconds(step: Step): number | null {
     case "pattern": return 15;
     case "mystery": return 60;
     case "sudoku": return 45 + step.config.blanks * 6;
+    case "clock": return 12;
+    case "coins": return step.config.max > 10 ? 30 : 20;
+    case "problem": return 35;
+    case "fraction": return step.config.mode === "color" ? 15 : 10;
   }
 }
 

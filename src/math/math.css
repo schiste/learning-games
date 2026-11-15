@@ -244,13 +244,14 @@
 .m-countdown > span { font-size: 22px; }
 .m-countdown small { min-width: 104px; font-size: 14px; text-align: left; }
 .m-countdown-track { flex: 1; height: 14px; overflow: hidden; border: 2px solid var(--ink); border-radius: 999px; background: white; }
-.m-countdown-track i { display: block; height: 100%; background: linear-gradient(90deg, var(--leaf), var(--sun)); transform-origin: left; animation: m-drain linear forwards; }
+.m-countdown-track i { display: block; height: 100%; background: linear-gradient(90deg, var(--leaf), var(--sun)); transform-origin: left; animation: m-drain var(--countdown, 10s) linear forwards; }
 .m-countdown.is-ended .m-countdown-track { border-color: #cdbd9f; }
 @keyframes m-drain { from { transform: scaleX(1); } to { transform: scaleX(0); } }
 .m-stage-score { padding: 6px 12px; border: 2px solid var(--ink); border-radius: 999px; background: white; font-weight: 700; white-space: nowrap; }
 .m-points-pop { color: var(--good); font-weight: 700; animation: pop-in .3s ease-out; }
 .m-record { padding: 6px 14px; border-radius: 999px; background: var(--sun); font-weight: 700; animation: pop-in .4s ease-out; }
-@media (prefers-reduced-motion: reduce) { .m-countdown-track i { animation-timing-function: steps(10); } }
+/* The global reduced-motion rule shortens every animation; the countdown is a slow, linear bar that must keep its real duration. */
+@media (prefers-reduced-motion: reduce) { .m-countdown-track i { animation-duration: var(--countdown, 10s) !important; } }
 .m-round { width: 100%; display: grid; justify-items: center; gap: 8px; }
 
 /* ---------- Profiles ---------- */
@@ -421,3 +422,56 @@ button.nl-point:hover .nl-tick { background: var(--accent); transform: scaleY(1.
 .k-cell.is-wrong { background: #ffe7eb; animation: shake .35s ease-in-out; }
 .k-grid.is-solved .k-cell { background: #e2f6e8; }
 @media (max-width: 560px) { .p-sequence li { min-width: 44px; height: 48px; font-size: 24px; } .p-sequence.is-shapes li { width: 46px; } .y-clues li { font-size: 16px; } }
+
+/* ---------- Clock ---------- */
+.c-face { width: min(70vw, 230px); height: auto; }
+.c-rim { fill: white; stroke: var(--ink); stroke-width: 6; }
+.c-tick { stroke: #a99a88; stroke-width: 1.5; }
+.c-tick.is-hour { stroke: var(--ink); stroke-width: 3; }
+.c-number { font: 700 17px "Fredoka", sans-serif; text-anchor: middle; fill: var(--ink); }
+.c-hour { stroke: var(--berry); stroke-width: 8; stroke-linecap: round; }
+.c-minute { stroke: var(--sky); stroke-width: 5; stroke-linecap: round; }
+.c-pin { fill: var(--ink); }
+.c-choice { font-size: 26px; min-width: 120px; }
+
+/* ---------- Money ---------- */
+.shop-tag { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border: 3px solid var(--ink); border-radius: 14px; background: #fff4cf; font-size: 30px; }
+.shop-tag strong { font-size: 30px; }
+.money-tray { position: relative; width: min(100%, 560px); min-height: 92px; padding: 12px 70px 12px 12px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; border: 3px solid var(--ink); border-radius: 20px; background: #6b4f3a; }
+.money-tray small { color: #f3e2c8; }
+.money-tray.is-solved { background: var(--good); }
+.money-total { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); padding: 4px 10px; border-radius: 12px; background: white; font-size: 20px; }
+.money-bank { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.money-button { padding: 0; border: 0; background: none; cursor: pointer; }
+.money-button:disabled { cursor: default; }
+.money { display: grid; place-items: center; font-weight: 700; box-shadow: 0 4px 0 rgba(59,47,47,.25); }
+.money.is-coin { width: 64px; height: 64px; border-radius: 50%; border: 4px double #8e6900; background: radial-gradient(circle at 35% 30%, #fff0a8, #e8b923); font-size: 18px; }
+.money.money-2.is-coin { width: 70px; height: 70px; background: radial-gradient(circle at 35% 30%, #fff, #d9d9d9 45%, #e8b923 46%); }
+.money.is-note { width: 104px; height: 58px; border: 3px solid var(--ink); border-radius: 8px; font-size: 20px; }
+.money-5 { background: #c9c9c9; }
+.money-10 { background: #f2a7a7; }
+.money-20 { background: #a7c8f2; }
+.money.is-small.is-coin { width: 46px; height: 46px; font-size: 13px; }
+.money.is-small.is-note { width: 74px; height: 42px; font-size: 15px; }
+
+/* ---------- Word problems: bar model ---------- */
+.b-question { margin: 0; font-size: 20px; font-weight: 700; color: var(--berry); }
+.b-model { min-width: 260px; max-width: 100%; display: grid; gap: 6px; }
+.b-row { display: flex; gap: 4px; }
+.b-segment { min-width: 34px; height: 46px; display: grid; place-items: center; border: 3px solid var(--ink); border-radius: 10px; background: color-mix(in srgb, var(--accent) 30%, white); font-size: 20px; font-weight: 700; }
+.b-row.is-bottom .b-segment { background: color-mix(in srgb, var(--sky) 25%, white); }
+.b-segment.is-unknown { border-style: dashed; background: #fff4cf !important; color: #b48a00; }
+.b-equation { margin: 0; font-size: clamp(26px, 5vw, 36px); font-weight: 700; }
+
+/* ---------- Fractions ---------- */
+.f-bar { width: min(100%, 560px); height: 84px; display: flex; border: 4px solid var(--ink); border-radius: 14px; overflow: hidden; background: var(--ink); gap: 3px; }
+.f-part { flex: 1; border: 0; background: #fff4e0; cursor: default; }
+button.f-part:not(:disabled) { cursor: pointer; }
+button.f-part:not(:disabled):hover { background: #ffe2b0; }
+.f-part.is-colored { background: #8a4b2a; }
+.f-bar.is-solved .f-part.is-colored { background: var(--good); }
+.f-written { display: inline-grid; justify-items: center; line-height: 1; }
+.f-written b { font-size: 28px; }
+.f-written i { width: 100%; min-width: 26px; height: 3px; margin: 3px 0; background: currentColor; }
+.f-choice { height: 96px; }
+@media (max-width: 560px) { .money.is-note { width: 86px; height: 50px; } .money.is-coin { width: 56px; height: 56px; } .b-segment { font-size: 16px; height: 40px; } }
