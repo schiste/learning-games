@@ -7,6 +7,9 @@ import {
   blocksRound,
   bondsHint,
   bridgeRound,
+  groupsFactKeys,
+  groupsRound,
+  shareRound,
   LINE_TICKS,
   lineRound,
   placeDigits,
@@ -172,6 +175,34 @@ describe("bridge through ten", () => {
         expect(round.a - round.toTen).toBe(10);
         expect(round.answer).toBe(10 - round.rest);
       }
+    }
+  });
+});
+
+describe("groups", () => {
+  it("always uses a factor from the tables being learned and offers neighbouring products", () => {
+    for (let run = 0; run < RUNS; run += 1) {
+      const round = groupsRound({ tables: [6, 7, 8, 9], maxSize: 9, layout: "array" });
+      expect([round.groups, round.size].some((factor) => [6, 7, 8, 9].includes(factor))).toBe(true);
+      expect(round.answer).toBe(round.groups * round.size);
+      expect(round.choices).toContain(round.answer);
+      expect(new Set(round.choices).size).toBe(4);
+    }
+  });
+
+  it("records the products the review knows about", () => {
+    expect(groupsFactKeys({ groups: 3, size: 7, thing: "🍎", answer: 21, choices: [] })).toEqual(["tables:3:7", "tables2-5:3:7"]);
+    expect(groupsFactKeys({ groups: 7, size: 10, thing: "🍎", answer: 70, choices: [] })).toEqual([]);
+  });
+});
+
+describe("share", () => {
+  it("deals a total that splits into equal parts plus a remainder smaller than the number of friends", () => {
+    for (let run = 0; run < RUNS; run += 1) {
+      const round = shareRound({ maxFriends: 5, maxEach: 6, remainder: true });
+      expect(round.total).toBe(round.friends * round.each + round.left);
+      expect(round.left).toBeLessThan(round.friends);
+      expect(shareRound({ maxFriends: 4, maxEach: 5, remainder: false }).left).toBe(0);
     }
   });
 });

@@ -238,3 +238,41 @@ export function bridgeRound({ op }: BridgeConfig, rng: Rng = Math.random): Bridg
   const fixed = a % 10 < b ? b : Math.min(9, a % 10 + 1);
   return { a, b: fixed, op, toTen: a - 10, rest: fixed - (a - 10), answer: a - fixed };
 }
+
+/* ---------- Groups: multiplication as equal groups or rectangles ---------- */
+
+export type GroupsConfig = { tables: number[]; maxSize: number; layout: "bags" | "array" };
+export type GroupsRound = { groups: number; size: number; thing: Thing; answer: number; choices: number[] };
+
+/** `groups` bags (or rows) of `size`: one factor always comes from the tables being learned. */
+export function groupsRound({ tables, maxSize }: GroupsConfig, rng: Rng = Math.random): GroupsRound {
+  const table = pick(tables, rng);
+  const other = randomInt(2, maxSize, rng);
+  const [groups, size] = rng() < 0.5 ? [table, other] : [other, table];
+  const answer = groups * size;
+  // Neighbouring products (one group more or less) are the meaningful mistakes.
+  const candidates = shuffle([answer + size, answer - size, answer + groups, answer - groups, answer + 1].filter((value) => value > 0 && value !== answer), rng);
+  const choices = [answer, ...[...new Set(candidates)].slice(0, 3)].sort((a, b) => a - b);
+  return { groups, size, thing: pick(THINGS, rng), answer, choices };
+}
+
+/** The table facts this round practises, as stored by the review ("groups × size", read in that order). */
+export function groupsFactKeys(round: GroupsRound): string[] {
+  const { groups: a, size: b } = round;
+  const keys: string[] = [];
+  if (a >= 2 && a <= 9 && b >= 2 && b <= 9) keys.push(`tables:${a}:${b}`);
+  if (a >= 2 && a <= 5 && b >= 1 && b <= 10) keys.push(`tables2-5:${a}:${b}`);
+  return keys;
+}
+
+/* ---------- Share: division as dealing out equally ---------- */
+
+export type ShareConfig = { maxFriends: number; maxEach: number; remainder: boolean };
+export type ShareRound = { friends: number; each: number; left: number; total: number; thing: Thing };
+
+export function shareRound({ maxFriends, maxEach, remainder }: ShareConfig, rng: Rng = Math.random): ShareRound {
+  const friends = randomInt(2, maxFriends, rng);
+  const each = randomInt(2, maxEach, rng);
+  const left = remainder ? randomInt(0, friends - 1, rng) : 0;
+  return { friends, each, left, total: friends * each + left, thing: pick(THINGS, rng) };
+}
