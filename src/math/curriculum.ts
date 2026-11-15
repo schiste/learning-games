@@ -1,5 +1,5 @@
 import type { FactSet } from "./facts";
-import type { BondsConfig, BuildConfig, CompareConfig, CountConfig, FlashConfig, SprintConfig } from "./logic";
+import type { BlocksConfig, BondsConfig, BridgeConfig, BuildConfig, CompareConfig, CountConfig, FlashConfig, LineConfig, SprintConfig } from "./logic";
 
 export type Grade = "CP" | "CE1" | "CE2";
 export type ChapterColor = "sky" | "sun" | "berry" | "leaf" | "plum" | "teal";
@@ -11,7 +11,10 @@ export type StepGame =
   | { engine: "build"; config: BuildConfig }
   | { engine: "compare"; config: CompareConfig }
   | { engine: "bonds"; config: BondsConfig }
-  | { engine: "sprint"; config: SprintConfig };
+  | { engine: "sprint"; config: SprintConfig }
+  | { engine: "blocks"; config: BlocksConfig }
+  | { engine: "line"; config: LineConfig }
+  | { engine: "bridge"; config: BridgeConfig };
 
 export type EngineId = StepGame["engine"];
 
@@ -58,6 +61,37 @@ export const CHAPTERS: Chapter[] = [
       { id: "sprint-10", title: "Chrono du 10", goal: "Une minute pour faire 10 le plus de fois possible.", grade: "CP", rounds: 1, engine: "sprint", config: { facts: "complements10", seconds: 60 } },
     ],
   },
+  {
+    id: "tens",
+    title: "Dizaines et unités",
+    icon: "🧱",
+    color: "berry",
+    steps: [
+      { id: "pv-build", title: "Je construis", goal: "10 cubes font une barre de dix. Je construis le nombre.", grade: "CP", rounds: 5, engine: "blocks", config: { max: 99, mode: "build" } },
+      { id: "pv-read", title: "Je lis", goal: "Je compte les dizaines puis les unités.", grade: "CP", rounds: 5, engine: "blocks", config: { max: 99, mode: "read" } },
+      { id: "line-20", title: "La règle", goal: "Je place les nombres jusqu’à 20.", grade: "CP", rounds: 5, engine: "line", config: { mode: "place", max: 20 } },
+      { id: "line-100", title: "La grande règle", goal: "Je place les nombres jusqu’à 100.", grade: "CP", rounds: 5, engine: "line", config: { mode: "place", max: 100 } },
+      { id: "compare-100", title: "Le plus grand", goal: "Je compare d’abord les dizaines.", grade: "CP", rounds: 6, engine: "compare", config: { min: 10, max: 99, mode: "numbers", aligned: false } },
+    ],
+  },
+  {
+    id: "addsub",
+    title: "Ajouter et enlever",
+    icon: "🐸",
+    color: "leaf",
+    steps: [
+      { id: "hop-add", title: "La grenouille avance", goal: "Ajouter, c’est avancer sur la ligne.", grade: "CP", rounds: 5, engine: "line", config: { mode: "hop", max: 10, op: "+", hop: 1, maxHops: 5 } },
+      { id: "hop-sub", title: "La grenouille recule", goal: "Enlever, c’est reculer sur la ligne.", grade: "CP", rounds: 5, engine: "line", config: { mode: "hop", max: 10, op: "−", hop: 1, maxHops: 5 } },
+      { id: "sprint-add10", title: "Chrono +", goal: "Une minute d’additions jusqu’à 10.", grade: "CP", rounds: 1, engine: "sprint", config: { facts: "add10", seconds: 60 } },
+      { id: "sprint-doubles", title: "Les doubles", goal: "Je connais les doubles par cœur.", grade: "CP", rounds: 1, engine: "sprint", config: { facts: "doubles", seconds: 60 } },
+      { id: "sprint-sub10", title: "Chrono −", goal: "Une minute de soustractions jusqu’à 10.", grade: "CP", rounds: 1, engine: "sprint", config: { facts: "sub10", seconds: 60 } },
+      { id: "bridge-add", title: "Passer la dizaine", goal: "Je complète la dizaine, puis j’ajoute le reste.", grade: "CE1", rounds: 5, engine: "bridge", config: { op: "+" }, teaches: "add20" },
+      { id: "bridge-sub", title: "Redescendre à 10", goal: "Je reviens à 10, puis j’enlève le reste.", grade: "CE1", rounds: 5, engine: "bridge", config: { op: "−" }, teaches: "sub20" },
+      { id: "hop-tens", title: "Les bonds de 10", goal: "Ajouter 10, c’est changer les dizaines.", grade: "CE1", rounds: 5, engine: "line", config: { mode: "hop", max: 100, op: "±", hop: 10, maxHops: 4 } },
+      { id: "sprint-20", title: "Chrono jusqu’à 20", goal: "Une minute pour passer la dizaine.", grade: "CE1", rounds: 1, engine: "sprint", config: { facts: "add20", seconds: 60 } },
+      { id: "sprint-tens", title: "Chrono des dizaines", goal: "Une minute d’additions de dizaines.", grade: "CE1", rounds: 1, engine: "sprint", config: { facts: "tens", seconds: 60 } },
+    ],
+  },
 ];
 
 export const ALL_STEPS: Step[] = CHAPTERS.flatMap((chapter) => chapter.steps);
@@ -88,6 +122,9 @@ export function roundSeconds(step: Step): number | null {
     case "compare": return step.config.mode === "objects" ? 10 : 8;
     case "bonds": return step.config.frame ? 15 : 8;
     case "sprint": return null;
+    case "blocks": return step.config.mode === "build" ? 12 + 4 * String(step.config.max).length : 12;
+    case "line": return step.config.mode === "place" ? 12 : 16;
+    case "bridge": return 20;
   }
 }
 

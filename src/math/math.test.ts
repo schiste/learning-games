@@ -2,7 +2,14 @@ import { describe, expect, it } from "vitest";
 import { parseRoute } from "../route";
 import { ALL_STEPS, CHAPTERS, findStep, nextStep } from "./curriculum";
 import {
+  blocksChoices,
+  blocksHint,
+  blocksRound,
   bondsHint,
+  bridgeRound,
+  LINE_TICKS,
+  lineRound,
+  placeDigits,
   bondsRound,
   buildHint,
   compareAnswer,
@@ -93,6 +100,82 @@ describe("bonds", () => {
   });
 });
 
+describe("blocks", () => {
+  it.each([99, 999, 9999])("targets up to %i are never round and are always among the choices", (max) => {
+    for (let run = 0; run < RUNS; run += 1) {
+      const round = blocksRound({ max, mode: "read" });
+      expect(round.target).toBeGreaterThan(10);
+      expect(round.target).toBeLessThanOrEqual(max);
+      expect(round.target % 10).not.toBe(0);
+      expect(round.choices).toContain(round.target);
+      expect(new Set(round.choices).size).toBe(4);
+    }
+  });
+
+  it("offers the swapped-digits mistake and the forgotten zero", () => {
+    expect(blocksChoices(34, 99)).toContain(43);
+    expect(blocksChoices(305, 999)).toContain(35);
+    expect(placeDigits(1093, 4)).toEqual([3, 9, 0, 1]);
+  });
+
+  it("names the first place that is wrong, from the biggest", () => {
+    expect(blocksHint(25, 47)).toBe("Il manque des dizaines : tu en as 2, il en faut 4.");
+    expect(blocksHint(49, 47)).toBe("Trop d’unités : tu en as 9, il en faut 7.");
+    expect(blocksHint(347, 247)).toBe("Trop de centaines : tu en as 3, il en faut 2.");
+  });
+});
+
+describe("number line", () => {
+  it.each([20, 100, 1000])("places targets inside an 11-tick window up to %i", (max) => {
+    for (let run = 0; run < RUNS; run += 1) {
+      const round = lineRound({ mode: "place", max });
+      const end = round.from + (LINE_TICKS - 1) * round.step;
+      expect(round.target).toBeGreaterThan(round.from);
+      expect(round.target).toBeLessThan(end);
+      expect((round.target - round.from) % round.step).toBe(0);
+      expect(end).toBeLessThanOrEqual(max);
+    }
+  });
+
+  it("keeps every hop on a visible tick and the landing among the choices", () => {
+    for (const config of [
+      { mode: "hop" as const, max: 10, op: "+" as const, hop: 1 as const, maxHops: 5 },
+      { mode: "hop" as const, max: 10, op: "−" as const, hop: 1 as const, maxHops: 5 },
+      { mode: "hop" as const, max: 100, op: "±" as const, hop: 10 as const, maxHops: 4 },
+    ]) {
+      for (let run = 0; run < RUNS; run += 1) {
+        const round = lineRound(config);
+        const end = round.from + 10 * round.step;
+        for (const value of [round.start, round.target]) {
+          expect(value).toBeGreaterThanOrEqual(round.from);
+          expect(value).toBeLessThanOrEqual(end);
+          expect((value - round.from) % round.step).toBe(0);
+        }
+        expect(Math.abs(round.target - round.start)).toBe(round.hops * round.step);
+        expect(round.choices).toContain(round.target);
+      }
+    }
+  });
+});
+
+describe("bridge through ten", () => {
+  it.each(["+", "−"] as const)("%s always crosses ten and splits the second number into to-ten and rest", (op) => {
+    for (let run = 0; run < RUNS; run += 1) {
+      const round = bridgeRound({ op });
+      expect(round.toTen).toBeGreaterThan(0);
+      expect(round.rest).toBeGreaterThan(0);
+      expect(round.toTen + round.rest).toBe(round.b);
+      if (op === "+") {
+        expect(round.a + round.toTen).toBe(10);
+        expect(round.answer).toBe(10 + round.rest);
+      } else {
+        expect(round.a - round.toTen).toBe(10);
+        expect(round.answer).toBe(10 - round.rest);
+      }
+    }
+  });
+});
+
 describe("stars", () => {
   it("rewards accuracy without ever giving zero", () => {
     expect(roundStars(0)).toBe(3);
@@ -118,10 +201,12 @@ describe("curriculum", () => {
     expect(findStep("nope")).toBeNull();
   });
 
-  it("keeps grades in non-decreasing order along the adventure", () => {
+  it("keeps grades in non-decreasing order within each chapter", () => {
     const order = { CP: 0, CE1: 1, CE2: 2 };
-    for (let index = 1; index < ALL_STEPS.length; index += 1) {
-      expect(order[ALL_STEPS[index].grade]).toBeGreaterThanOrEqual(order[ALL_STEPS[index - 1].grade]);
+    for (const chapter of CHAPTERS) {
+      for (let index = 1; index < chapter.steps.length; index += 1) {
+        expect(order[chapter.steps[index].grade]).toBeGreaterThanOrEqual(order[chapter.steps[index - 1].grade]);
+      }
     }
   });
 });

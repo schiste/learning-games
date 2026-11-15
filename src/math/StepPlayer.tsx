@@ -5,7 +5,10 @@ import { roundPoints, roundStars } from "./logic";
 import type { Stars as StarCount } from "./profiles";
 import { Countdown, Stars } from "./ui";
 import { now, type RoundResult } from "./hooks";
+import BlocksGame from "./games/BlocksGame";
 import BondsGame from "./games/BondsGame";
+import BridgeGame from "./games/BridgeGame";
+import LineGame from "./games/LineGame";
 import BuildGame from "./games/BuildGame";
 import CompareGame from "./games/CompareGame";
 import CountGame from "./games/CountGame";
@@ -21,6 +24,9 @@ function Round({ step, onSolved }: { step: Step; onSolved: (result: RoundResult)
     case "compare": return <CompareGame config={step.config} onSolved={onSolved} />;
     case "bonds": return <BondsGame config={step.config} onSolved={onSolved} />;
     case "sprint": return <SprintGame config={step.config} onSolved={onSolved} />;
+    case "blocks": return <BlocksGame config={step.config} onSolved={onSolved} />;
+    case "line": return <LineGame config={step.config} onSolved={onSolved} />;
+    case "bridge": return <BridgeGame config={step.config} onSolved={onSolved} />;
   }
 }
 

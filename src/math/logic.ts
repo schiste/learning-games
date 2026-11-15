@@ -130,3 +130,111 @@ export function roundStars(mistakes: number): 1 | 2 | 3 {
   if (mistakes <= 4) return 2;
   return 1;
 }
+
+/* ---------- Blocks: base-ten place value ---------- */
+
+export type BlocksConfig = { max: number; mode: "build" | "read" };
+export type BlocksRound = { target: number; choices: number[] };
+export const PLACES = ["unités", "dizaines", "centaines", "milliers"] as const;
+
+/** Digits of n from units upwards: 1093 → [3, 9, 0, 1]. */
+export function placeDigits(value: number, places: number): number[] {
+  return Array.from({ length: places }, (_, index) => Math.floor(value / 10 ** index) % 10);
+}
+
+export function placesFor(max: number): number {
+  return String(max).length;
+}
+
+/**
+ * Distractors are the classic place-value mistakes: swapped digits (34 ↔ 43),
+ * one more or less in a place, and a forgotten zero (305 read as 35).
+ */
+export function blocksChoices(target: number, max: number, rng: Rng = Math.random): number[] {
+  const digits = String(target);
+  const valid = (value: number) => value !== target && value >= 1 && value <= max + 100;
+  // The signature mistakes always appear; ±1 and ±10 fill the remaining places.
+  const priority = [
+    digits.length >= 2 ? Number([...digits].reverse().join("")) : NaN,
+    digits.length > 2 && digits.includes("0") ? Number(digits.replaceAll("0", "")) : NaN,
+  ].filter((value) => Number.isFinite(value) && valid(value));
+  const others = shuffle([target + 10, target - 10, target + 1, target - 1, target + 100].filter(valid), rng);
+  const picked = [...new Set([...priority, ...others])].slice(0, 3);
+  return [target, ...picked].sort((a, b) => a - b);
+}
+
+/** Targets avoid trivial round numbers, and at the top levels often contain an inner zero (1 093, 405). */
+export function blocksRound({ max }: BlocksConfig, rng: Rng = Math.random): BlocksRound {
+  let target = randomInt(max >= 100 ? 101 : 11, max, rng);
+  if (max >= 1000 && rng() < 0.4) target = randomInt(1, 9, rng) * 1000 + randomInt(0, 9, rng) * 10 + randomInt(1, 9, rng);
+  else if (max >= 100 && rng() < 0.3) target = randomInt(1, 9, rng) * 100 + randomInt(1, 9, rng);
+  if (target % 10 === 0) target += randomInt(1, 9, rng);
+  target = Math.min(target, max);
+  return { target, choices: blocksChoices(target, max, rng) };
+}
+
+/** Where the built number first differs from the target, starting from the biggest place. */
+export function blocksHint(built: number, target: number): string {
+  const places = Math.max(String(built).length, String(target).length);
+  const a = placeDigits(built, places);
+  const b = placeDigits(target, places);
+  for (let index = places - 1; index >= 0; index -= 1) {
+    if (a[index] !== b[index]) {
+      const name = PLACES[index];
+      return a[index] < b[index]
+        ? `Il manque des ${name} : tu en as ${a[index]}, il en faut ${b[index]}.`
+        : `Trop ${name === "unités" ? "d’unités" : `de ${name}`} : tu en as ${a[index]}, il en faut ${b[index]}.`;
+    }
+  }
+  return "";
+}
+
+/* ---------- Number line: place a number, or hop to add and subtract ---------- */
+
+export type LineConfig =
+  | { mode: "place"; max: number }
+  | { mode: "hop"; max: number; op: "+" | "−" | "±"; hop: 1 | 10; maxHops: number };
+
+/** A visible window of 11 ticks (`from`, `from + step`, … `from + 10·step`), zoomed on the right ten or hundred. */
+export type LineRound = { from: number; step: number; target: number; start: number; hops: number; op: "+" | "−"; choices: number[] };
+
+export const LINE_TICKS = 11;
+
+export function lineRound(config: LineConfig, rng: Rng = Math.random): LineRound {
+  if (config.mode === "place") {
+    // Up to 20: the 0–10 or 10–20 stretch. Beyond: one ten of a hundred, or one hundred of a thousand…
+    const step = config.max <= 100 ? 1 : config.max <= 1000 ? 10 : 100;
+    const span = step * 10;
+    const from = config.max <= 20 ? pick([0, 10].filter((value) => value < config.max), rng) : randomInt(0, config.max / span - 1, rng) * span;
+    const target = from + randomInt(1, 9, rng) * step;
+    return { from, step, target, start: target, hops: 0, op: "+", choices: [] };
+  }
+  const op = config.op === "±" ? (rng() < 0.5 ? "+" : "−") : config.op;
+  const step = config.hop;
+  const hops = randomInt(2, config.maxHops, rng);
+  const span = step * 10;
+  // Hops of 10 start from a number that is not round (34 → 44 → 54) so the units visibly stay the same.
+  const from = config.max <= 20 ? 0 : step === 10 ? randomInt(1, 9, rng) + (config.max > 110 ? randomInt(0, config.max / 100 - 1, rng) * 100 : 0) : randomInt(0, config.max / span - 1, rng) * span;
+  const position = op === "+" ? randomInt(0, 10 - hops, rng) : randomInt(hops, 10, rng);
+  const start = from + position * step;
+  const target = op === "+" ? start + hops * step : start - hops * step;
+  return { from, step, target, start, hops, op, choices: nearbyChoices(target, 4, 0, config.max + 10, rng) };
+}
+
+/* ---------- Bridge through ten: 8 + 5 = 8 + 2 + 3 ---------- */
+
+export type BridgeConfig = { op: "+" | "−" };
+export type BridgeRound = { a: number; b: number; op: "+" | "−"; toTen: number; rest: number; answer: number };
+
+/** Addition: a + b with a + b > 10 (8 + 5). Subtraction: a − b crossing ten downwards (13 − 5 = 13 − 3 − 2). */
+export function bridgeRound({ op }: BridgeConfig, rng: Rng = Math.random): BridgeRound {
+  if (op === "+") {
+    const a = randomInt(6, 9, rng);
+    const b = randomInt(11 - a, 9, rng);
+    return { a, b, op, toTen: 10 - a, rest: b - (10 - a), answer: a + b };
+  }
+  const a = randomInt(11, 17, rng);
+  const b = randomInt(a - 9, 9, rng);
+  const fixed = a % 10 < b ? b : Math.min(9, a % 10 + 1);
+  return { a, b: fixed, op, toTen: a - 10, rest: fixed - (a - 10), answer: a - fixed };
+}
