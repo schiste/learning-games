@@ -1,4 +1,4 @@
-import { type Complexity } from "./gameLogic";
+import { type Complexity } from "./levels";
 
 export type Grade = "CP" | "CE1" | "CE2";
 export type CoreSpaceId = "operations" | "multiplication" | "spelling" | "fractions" | "problems" | "time" | "money" | "grammar" | "measurement" | "geometry";

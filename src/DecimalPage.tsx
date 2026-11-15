@@ -16,7 +16,7 @@ import {
   placeDigits,
   type Place,
 } from "./decimalLogic";
-import { type Complexity } from "./gameLogic";
+import { type Complexity } from "./levels";
 import "./decimal.css";
 
 type DecimalGameId = "bundles" | "abacus" | "cards" | "counter" | "compare" | "line" | "machine" | "detective" | "code";

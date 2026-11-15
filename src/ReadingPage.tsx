@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { beep, fanfare, speakFrench } from "./audio";
-import { type Complexity } from "./gameLogic";
+import { type Complexity } from "./levels";
 import {
   clapWord,
   dictationTiles,
