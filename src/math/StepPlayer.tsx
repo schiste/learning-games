@@ -8,7 +8,9 @@ import { now, type RoundResult } from "./hooks";
 import BlocksGame from "./games/BlocksGame";
 import BondsGame from "./games/BondsGame";
 import BridgeGame from "./games/BridgeGame";
+import GroupsGame from "./games/GroupsGame";
 import LineGame from "./games/LineGame";
+import ShareGame from "./games/ShareGame";
 import BuildGame from "./games/BuildGame";
 import CompareGame from "./games/CompareGame";
 import CountGame from "./games/CountGame";
@@ -27,6 +29,8 @@ function Round({ step, onSolved }: { step: Step; onSolved: (result: RoundResult)
     case "blocks": return <BlocksGame config={step.config} onSolved={onSolved} />;
     case "line": return <LineGame config={step.config} onSolved={onSolved} />;
     case "bridge": return <BridgeGame config={step.config} onSolved={onSolved} />;
+    case "groups": return <GroupsGame config={step.config} onSolved={onSolved} />;
+    case "share": return <ShareGame config={step.config} onSolved={onSolved} />;
   }
 }
 

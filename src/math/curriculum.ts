@@ -1,5 +1,5 @@
 import type { FactSet } from "./facts";
-import type { BlocksConfig, BondsConfig, BridgeConfig, BuildConfig, CompareConfig, CountConfig, FlashConfig, LineConfig, SprintConfig } from "./logic";
+import type { BlocksConfig, BondsConfig, BridgeConfig, BuildConfig, CompareConfig, CountConfig, FlashConfig, GroupsConfig, LineConfig, ShareConfig, SprintConfig } from "./logic";
 
 export type Grade = "CP" | "CE1" | "CE2";
 export type ChapterColor = "sky" | "sun" | "berry" | "leaf" | "plum" | "teal";
@@ -14,7 +14,9 @@ export type StepGame =
   | { engine: "sprint"; config: SprintConfig }
   | { engine: "blocks"; config: BlocksConfig }
   | { engine: "line"; config: LineConfig }
-  | { engine: "bridge"; config: BridgeConfig };
+  | { engine: "bridge"; config: BridgeConfig }
+  | { engine: "groups"; config: GroupsConfig }
+  | { engine: "share"; config: ShareConfig };
 
 export type EngineId = StepGame["engine"];
 
@@ -92,6 +94,36 @@ export const CHAPTERS: Chapter[] = [
       { id: "sprint-tens", title: "Chrono des dizaines", goal: "Une minute d’additions de dizaines.", grade: "CE1", rounds: 1, engine: "sprint", config: { facts: "tens", seconds: 60 } },
     ],
   },
+  {
+    id: "big",
+    title: "Les grands nombres",
+    icon: "🏰",
+    color: "plum",
+    steps: [
+      { id: "pv-build-1000", title: "Les centaines", goal: "10 barres de dix font une plaque de cent.", grade: "CE1", rounds: 5, engine: "blocks", config: { max: 999, mode: "build" } },
+      { id: "pv-read-1000", title: "Lire les centaines", goal: "Je lis les nombres jusqu’à 999, même avec un zéro.", grade: "CE1", rounds: 5, engine: "blocks", config: { max: 999, mode: "read" } },
+      { id: "line-1000", title: "La règle des centaines", goal: "Je place les nombres jusqu’à 1 000.", grade: "CE1", rounds: 5, engine: "line", config: { mode: "place", max: 1000 } },
+      { id: "compare-1000", title: "Le plus grand jusqu’à 1 000", goal: "Je compare les centaines d’abord.", grade: "CE1", rounds: 6, engine: "compare", config: { min: 100, max: 999, mode: "numbers", aligned: false } },
+      { id: "pv-build-10000", title: "Les milliers", goal: "10 plaques de cent font un millier.", grade: "CE2", rounds: 5, engine: "blocks", config: { max: 9999, mode: "build" } },
+      { id: "pv-read-10000", title: "Lire les milliers", goal: "Je lis les grands nombres, comme 1 093.", grade: "CE2", rounds: 5, engine: "blocks", config: { max: 9999, mode: "read" } },
+      { id: "line-10000", title: "La règle des milliers", goal: "Je place les nombres jusqu’à 10 000.", grade: "CE2", rounds: 5, engine: "line", config: { mode: "place", max: 10000 } },
+    ],
+  },
+  {
+    id: "times",
+    title: "Multiplier et partager",
+    icon: "✖️",
+    color: "teal",
+    steps: [
+      { id: "bags-2-5", title: "Les sacs", goal: "Des groupes égaux : je compte de 2 en 2, de 5 en 5…", grade: "CE1", rounds: 5, engine: "groups", config: { tables: [2, 5, 10], maxSize: 5, layout: "bags" } },
+      { id: "array-2-5", title: "Les rectangles", goal: "3 lignes de 4, c’est 3 fois 4. Et si je tourne ?", grade: "CE1", rounds: 5, engine: "groups", config: { tables: [2, 3, 4, 5], maxSize: 6, layout: "array" } },
+      { id: "share-fair", title: "Le partage juste", goal: "Je partage pour que chacun ait la même chose.", grade: "CE1", rounds: 4, engine: "share", config: { maxFriends: 4, maxEach: 5, remainder: false } },
+      { id: "sprint-tables-2-5", title: "Chrono des tables", goal: "Une minute de tables de 2, 3, 4 et 5.", grade: "CE1", rounds: 1, engine: "sprint", config: { facts: "tables2-5", seconds: 60 } },
+      { id: "array-6-9", title: "Les grands rectangles", goal: "Les tables de 6, 7, 8 et 9.", grade: "CE2", rounds: 6, engine: "groups", config: { tables: [6, 7, 8, 9], maxSize: 9, layout: "array" } },
+      { id: "share-left", title: "Le partage et le reste", goal: "Parfois, il en reste : c’est le reste.", grade: "CE2", rounds: 4, engine: "share", config: { maxFriends: 5, maxEach: 6, remainder: true } },
+      { id: "sprint-tables", title: "Chrono de toutes les tables", goal: "Une minute de tables de 2 à 9.", grade: "CE2", rounds: 1, engine: "sprint", config: { facts: "tables", seconds: 60 } },
+    ],
+  },
 ];
 
 export const ALL_STEPS: Step[] = CHAPTERS.flatMap((chapter) => chapter.steps);
@@ -125,6 +157,8 @@ export function roundSeconds(step: Step): number | null {
     case "blocks": return step.config.mode === "build" ? 12 + 4 * String(step.config.max).length : 12;
     case "line": return step.config.mode === "place" ? 12 : 16;
     case "bridge": return 20;
+    case "groups": return step.config.layout === "bags" ? 16 : 18;
+    case "share": return 40;
   }
 }
 
