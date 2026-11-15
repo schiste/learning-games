@@ -10,6 +10,9 @@ import BondsGame from "./games/BondsGame";
 import BridgeGame from "./games/BridgeGame";
 import GroupsGame from "./games/GroupsGame";
 import LineGame from "./games/LineGame";
+import MysteryGame from "./games/MysteryGame";
+import PatternGame from "./games/PatternGame";
+import SudokuGame from "./games/SudokuGame";
 import ShareGame from "./games/ShareGame";
 import BuildGame from "./games/BuildGame";
 import CompareGame from "./games/CompareGame";
@@ -31,6 +34,9 @@ function Round({ step, onSolved }: { step: Step; onSolved: (result: RoundResult)
     case "bridge": return <BridgeGame config={step.config} onSolved={onSolved} />;
     case "groups": return <GroupsGame config={step.config} onSolved={onSolved} />;
     case "share": return <ShareGame config={step.config} onSolved={onSolved} />;
+    case "pattern": return <PatternGame config={step.config} onSolved={onSolved} />;
+    case "mystery": return <MysteryGame config={step.config} onSolved={onSolved} />;
+    case "sudoku": return <SudokuGame config={step.config} onSolved={onSolved} />;
   }
 }
 

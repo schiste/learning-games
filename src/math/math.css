@@ -389,3 +389,35 @@ button.nl-point:hover .nl-tick { background: var(--accent); transform: scaleY(1.
 .s-plate i { font-style: normal; }
 .s-friend b { font-size: 22px; }
 @media (max-width: 560px) { .g-bag, .s-friend { width: 96px; } .g-row i { width: 18px; height: 18px; } .g-row { gap: 4px; } }
+
+/* ---------- Logic: sequences, mystery number, mini-sudoku ---------- */
+.p-sequence { list-style: none; margin: 0; padding: 12px; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; border-radius: 20px; background: color-mix(in srgb, var(--accent) 10%, white); }
+.p-sequence li { min-width: 54px; height: 58px; padding: 0 8px; display: grid; place-items: center; border: 3px solid var(--ink); border-radius: 16px; background: white; font-size: 30px; font-weight: 700; }
+.p-sequence.is-shapes li { border-radius: 50%; width: 58px; padding: 0; }
+.p-gap { border-style: dashed !important; color: #b48a00; background: #fff4cf !important; }
+.p-gap.is-filled { border-style: solid !important; background: #e2f6e8 !important; animation: pop-in .3s ease-out; }
+.p-choice { font-size: 36px; }
+
+.y-clues { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.y-clues li { padding: 8px 14px; border: 2px solid var(--ink); border-radius: 14px; background: #fff8e1; font-size: 19px; font-weight: 700; text-align: left; }
+.y-mode { display: flex; gap: 6px; padding: 4px; border: 2px solid var(--ink); border-radius: 999px; background: white; }
+.y-mode button { min-height: 44px; padding: 6px 16px; border: 0; border-radius: 999px; background: none; font-weight: 700; cursor: pointer; }
+.y-mode button.is-active { background: var(--ink); color: white; }
+.y-grid { width: min(100%, 560px); display: grid; grid-template-columns: repeat(auto-fill, minmax(52px, 1fr)); gap: 6px; }
+.y-number { height: 52px; border: 2px solid var(--ink); border-radius: 12px; background: white; font-size: 20px; font-weight: 700; cursor: pointer; }
+.y-number.is-crossed { background: #eee6d8; color: #b3a492; text-decoration: line-through; text-decoration-thickness: 3px; }
+.y-number.is-wrong { border-color: var(--oops); background: #ffe7eb; animation: shake .35s ease-in-out; }
+.y-number.is-right { border-color: var(--ink); background: var(--good); color: white; animation: pop-in .35s ease-out; }
+
+.k-palette { display: flex; gap: 10px; }
+.k-brush { width: 64px; height: 64px; border: 3px solid var(--ink); border-radius: 18px; background: white; font-size: 30px; font-weight: 700; cursor: pointer; }
+.k-brush.is-active { background: var(--sun); transform: translateY(-3px); box-shadow: 0 4px 0 color-mix(in srgb, var(--sun) 50%, var(--ink)); }
+.k-grid { width: min(100%, 320px); display: grid; grid-template-columns: repeat(4, 1fr); border: 4px solid var(--ink); border-radius: 14px; overflow: hidden; background: var(--ink); gap: 2px; }
+.k-cell { aspect-ratio: 1; border: 0; background: white; font-size: clamp(26px, 7vw, 36px); font-weight: 700; cursor: pointer; }
+/* Thick lines between the 2×2 boxes. */
+.k-cell:nth-child(4n + 2) { margin-right: 3px; }
+.k-cell:nth-child(n + 5):nth-child(-n + 8) { margin-bottom: 3px; }
+.k-cell.is-given { background: var(--paper); cursor: default; color: var(--ink); }
+.k-cell.is-wrong { background: #ffe7eb; animation: shake .35s ease-in-out; }
+.k-grid.is-solved .k-cell { background: #e2f6e8; }
+@media (max-width: 560px) { .p-sequence li { min-width: 44px; height: 48px; font-size: 24px; } .p-sequence.is-shapes li { width: 46px; } .y-clues li { font-size: 16px; } }

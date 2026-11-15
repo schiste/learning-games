@@ -1,4 +1,5 @@
 import type { FactSet } from "./facts";
+import type { MysteryConfig, PatternConfig, SudokuConfig } from "./puzzles";
 import type { BlocksConfig, BondsConfig, BridgeConfig, BuildConfig, CompareConfig, CountConfig, FlashConfig, GroupsConfig, LineConfig, ShareConfig, SprintConfig } from "./logic";
 
 export type Grade = "CP" | "CE1" | "CE2";
@@ -16,7 +17,10 @@ export type StepGame =
   | { engine: "line"; config: LineConfig }
   | { engine: "bridge"; config: BridgeConfig }
   | { engine: "groups"; config: GroupsConfig }
-  | { engine: "share"; config: ShareConfig };
+  | { engine: "share"; config: ShareConfig }
+  | { engine: "pattern"; config: PatternConfig }
+  | { engine: "mystery"; config: MysteryConfig }
+  | { engine: "sudoku"; config: SudokuConfig };
 
 export type EngineId = StepGame["engine"];
 
@@ -61,6 +65,19 @@ export const CHAPTERS: Chapter[] = [
       { id: "make-10", title: "Faire 10", goal: "Je trouve ce qui manque pour faire 10.", grade: "CP", rounds: 6, teaches: "complements10", engine: "bonds", config: { totals: [10], frame: true } },
       { id: "make-10-head", title: "10 dans la tête", goal: "Je fais 10 sans regarder le cadre.", grade: "CP", rounds: 6, engine: "bonds", config: { totals: [10], frame: false } },
       { id: "sprint-10", title: "Chrono du 10", goal: "Une minute pour faire 10 le plus de fois possible.", grade: "CP", rounds: 1, engine: "sprint", config: { facts: "complements10", seconds: 60 } },
+    ],
+  },
+  {
+    id: "logic",
+    title: "Logique",
+    icon: "🧩",
+    color: "plum",
+    steps: [
+      { id: "pattern-ab", title: "Les colliers", goal: "Je trouve le motif qui se répète.", grade: "CP", rounds: 5, engine: "pattern", config: { kind: "shapes", units: ["AB", "AAB", "ABB"] } },
+      { id: "sudoku-shapes", title: "La grille des formes", goal: "Une seule forme de chaque dans chaque ligne, colonne et carré.", grade: "CP", rounds: 3, engine: "sudoku", config: { symbols: "shapes", blanks: 5 } },
+      { id: "pattern-abc", title: "Les longs colliers", goal: "Des motifs plus longs.", grade: "CP", rounds: 5, engine: "pattern", config: { kind: "shapes", units: ["ABC", "AABB", "AAB"] } },
+      { id: "count-on", title: "Les suites de nombres", goal: "De 1 en 1, de 2 en 2 : qu’est-ce qui vient après ?", grade: "CP", rounds: 5, engine: "pattern", config: { kind: "numbers", rules: ["+1", "+2", "-1"] } },
+      { id: "mystery-20", title: "Le nombre mystère", goal: "Je lis les indices et je barre ce qui ne va pas.", grade: "CP", rounds: 4, engine: "mystery", config: { min: 1, max: 20 } },
     ],
   },
   {
@@ -124,6 +141,19 @@ export const CHAPTERS: Chapter[] = [
       { id: "sprint-tables", title: "Chrono de toutes les tables", goal: "Une minute de tables de 2 à 9.", grade: "CE2", rounds: 1, engine: "sprint", config: { facts: "tables", seconds: 60 } },
     ],
   },
+  {
+    id: "riddles",
+    title: "Énigmes",
+    icon: "🕵️",
+    color: "sky",
+    steps: [
+      { id: "suites-5-10", title: "Les grands bonds", goal: "Des suites de 5 en 5, de 10 en 10, en arrière…", grade: "CE1", rounds: 5, engine: "pattern", config: { kind: "numbers", rules: ["+5", "+10", "-2", "-10"] } },
+      { id: "sudoku-digits", title: "La grille des chiffres", goal: "1, 2, 3 et 4 une seule fois partout.", grade: "CE1", rounds: 3, engine: "sudoku", config: { symbols: "digits", blanks: 8 } },
+      { id: "mystery-100", title: "Le détective", goal: "Le nombre mystère jusqu’à 100.", grade: "CE1", rounds: 4, engine: "mystery", config: { min: 10, max: 99 } },
+      { id: "suites-x2", title: "Les suites qui doublent", goal: "+3, −3, ×2 : je trouve la règle.", grade: "CE2", rounds: 5, engine: "pattern", config: { kind: "numbers", rules: ["+3", "-3", "x2"] } },
+      { id: "sudoku-hard", title: "La grille experte", goal: "Une grille presque vide.", grade: "CE2", rounds: 3, engine: "sudoku", config: { symbols: "digits", blanks: 11 } },
+    ],
+  },
 ];
 
 export const ALL_STEPS: Step[] = CHAPTERS.flatMap((chapter) => chapter.steps);
@@ -159,6 +189,9 @@ export function roundSeconds(step: Step): number | null {
     case "bridge": return 20;
     case "groups": return step.config.layout === "bags" ? 16 : 18;
     case "share": return 40;
+    case "pattern": return 15;
+    case "mystery": return 60;
+    case "sudoku": return 45 + step.config.blanks * 6;
   }
 }
 
