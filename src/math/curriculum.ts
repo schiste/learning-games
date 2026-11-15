@@ -1,3 +1,4 @@
+import type { FactSet } from "./facts";
 import type { BondsConfig, BuildConfig, CompareConfig, CountConfig, FlashConfig, SprintConfig } from "./logic";
 
 export type Grade = "CP" | "CE1" | "CE2";
@@ -22,6 +23,8 @@ export type Step = StepGame & {
   grade: Grade;
   /** How many rounds make up the step. Timed steps are a single round. */
   rounds: number;
+  /** Facts this step introduces; once it is finished they join the daily review. Sprints teach their own set. */
+  teaches?: FactSet;
 };
 
 export type Chapter = { id: string; title: string; icon: string; color: ChapterColor; steps: Step[] };
@@ -50,7 +53,7 @@ export const CHAPTERS: Chapter[] = [
       { id: "frame", title: "Le cadre", goal: "Je vois 5 et 10 d’un coup d’œil.", grade: "CP", rounds: 5, engine: "flash", config: { max: 10, pattern: "frame", showMs: 2500 } },
       { id: "house-5", title: "La maison du 5", goal: "Je trouve ce qui manque pour faire 5.", grade: "CP", rounds: 5, engine: "bonds", config: { totals: [5], frame: true } },
       { id: "houses", title: "Les maisons", goal: "Je casse un nombre en deux morceaux.", grade: "CP", rounds: 6, engine: "bonds", config: { totals: [6, 7, 8, 9], frame: true } },
-      { id: "make-10", title: "Faire 10", goal: "Je trouve ce qui manque pour faire 10.", grade: "CP", rounds: 6, engine: "bonds", config: { totals: [10], frame: true } },
+      { id: "make-10", title: "Faire 10", goal: "Je trouve ce qui manque pour faire 10.", grade: "CP", rounds: 6, teaches: "complements10", engine: "bonds", config: { totals: [10], frame: true } },
       { id: "make-10-head", title: "10 dans la tête", goal: "Je fais 10 sans regarder le cadre.", grade: "CP", rounds: 6, engine: "bonds", config: { totals: [10], frame: false } },
       { id: "sprint-10", title: "Chrono du 10", goal: "Une minute pour faire 10 le plus de fois possible.", grade: "CP", rounds: 1, engine: "sprint", config: { facts: "complements10", seconds: 60 } },
     ],
@@ -86,4 +89,29 @@ export function roundSeconds(step: Step): number | null {
     case "bonds": return step.config.frame ? 15 : 8;
     case "sprint": return null;
   }
+}
+
+/** Which fact set each step adds to the review once finished. */
+export function stepTeaches(step: Step): FactSet | null {
+  return step.engine === "sprint" ? step.config.facts : step.teaches ?? null;
+}
+
+/** Fact sets the player has met, in adventure order: these are what the daily review keeps fresh. */
+export function unlockedFactSets(finished: (stepId: string) => boolean): FactSet[] {
+  const sets: FactSet[] = [];
+  for (const step of ALL_STEPS) {
+    const set = stepTeaches(step);
+    if (set && finished(step.id) && !sets.includes(set)) sets.push(set);
+  }
+  return sets;
+}
+
+/** Every fact set the adventure teaches, with the step that unlocks it first. */
+export function factSetUnlocks(): Array<{ set: FactSet; step: Step }> {
+  const seen = new Map<FactSet, Step>();
+  for (const step of ALL_STEPS) {
+    const set = stepTeaches(step);
+    if (set && !seen.has(set)) seen.set(set, step);
+  }
+  return [...seen].map(([set, step]) => ({ set, step }));
 }

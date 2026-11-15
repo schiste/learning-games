@@ -279,3 +279,35 @@
 .m-scoreboard span { padding: 5px 12px; border-radius: 999px; background: var(--paper); border: 2px solid var(--soft); font-weight: 700; font-size: 15px; }
 .m-step-best { font-size: 12px; color: #6f6054; }
 @media (max-width: 560px) { .m-avatar { width: 56px; height: 56px; font-size: 30px; } .m-player-card { width: 136px; } }
+
+/* ---------- Fundamentals: review & mastery ---------- */
+.m-basics { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.m-basics-card { --accent: var(--plum); position: relative; min-height: 86px; padding: 12px 18px; display: flex; align-items: center; gap: 14px; border: 3px solid var(--ink); border-radius: 24px; background: color-mix(in srgb, var(--accent) 14%, white); text-align: left; cursor: pointer; box-shadow: 0 5px 0 color-mix(in srgb, var(--accent) 35%, var(--soft)); }
+.m-basics-card:hover:not(:disabled) { transform: translateY(-2px); }
+.m-basics-card:disabled { opacity: .6; cursor: default; }
+.m-basics-card strong { display: block; font-size: 20px; }
+.m-basics-card small { color: #6f6054; font-size: 14px; }
+.m-basics-icon { width: 52px; height: 52px; flex: none; display: grid; place-items: center; border: 3px solid var(--ink); border-radius: 50%; background: white; font-size: 28px; }
+.m-due { position: absolute; top: -10px; right: -8px; min-width: 34px; height: 34px; padding: 0 8px; display: grid; place-items: center; border: 2px solid var(--ink); border-radius: 999px; background: var(--berry); color: white; }
+.m-done-icon { font-size: 72px; }
+.review-round .sprint-fact { margin: 18px 0 8px; }
+
+.m-mastery { padding: 20px 18px 30px; display: grid; gap: 16px; }
+.m-mastery > .m-note { text-align: center; }
+.m-legend { margin: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.m-legend span { padding: 4px 12px; border-radius: 999px; font-size: 14px; font-weight: 700; }
+.m-fact-set { padding: 14px 16px; border: 3px solid var(--ink); border-radius: 22px; background: white; display: grid; gap: 10px; }
+.m-fact-set.is-locked { background: var(--paper); border-style: dashed; }
+.m-fact-set header { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.m-fact-set h3 { margin: 0; font-size: 20px; }
+.m-fact-count { font-weight: 700; }
+.m-fact-bar { height: 12px; border: 2px solid var(--ink); border-radius: 999px; overflow: hidden; background: var(--paper); }
+.m-fact-bar i { display: block; height: 100%; background: var(--good); }
+.m-fact-grid { display: grid; gap: 4px; overflow-x: auto; }
+.m-fact-row { display: flex; flex-wrap: wrap; gap: 4px; }
+.m-fact, .m-legend span { border: 2px solid transparent; }
+.m-fact { min-width: 64px; padding: 4px 6px; border-radius: 8px; font-size: 13px; font-weight: 700; text-align: center; white-space: nowrap; }
+.m-fact.is-new, .m-legend .is-new { background: #f1ebe0; color: #a2927f; }
+.m-fact.is-learning, .m-legend .is-learning { background: #ffe9a8; color: #6b5000; }
+.m-fact.is-known, .m-legend .is-known { background: #c7ecd3; color: #1d6b3f; border-color: var(--good) !important; }
+@media (max-width: 560px) { .m-basics { grid-template-columns: 1fr; } .m-fact { min-width: 54px; font-size: 12px; } }

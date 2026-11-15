@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { beep } from "../../audio";
-import { factFor, sprintPoints, sprintStars, type Fact, type SprintConfig } from "../logic";
+import { useFactMemory } from "../factMemory";
+import { factChoices, sprintFact, type FactItem } from "../facts";
+import { sprintPoints, sprintStars, type SprintConfig } from "../logic";
 import { NumberChoices, Prompt } from "../ui";
-import { type RoundProps } from "../hooks";
+import { now, type RoundProps } from "../hooks";
 
 const TICK_MS = 250;
 
@@ -14,7 +16,10 @@ const TICK_MS = 250;
 export default function SprintGame({ config, onSolved }: RoundProps<SprintConfig>) {
   const [started, setStarted] = useState(false);
   const [elapsed, setElapsed] = useState(0);
-  const [fact, setFact] = useState<Fact>(() => factFor(config.facts));
+  const memory = useFactMemory();
+  const [fact, setFact] = useState<FactItem>(() => sprintFact(config.facts, memory.facts));
+  const [choices, setChoices] = useState(() => factChoices(fact));
+  const shownAt = useRef(0);
   const [wrong, setWrong] = useState<number[]>([]);
   const [score, setScore] = useState(0);
   const [mistakes, setMistakes] = useState(0);
@@ -39,13 +44,21 @@ export default function SprintGame({ config, onSolved }: RoundProps<SprintConfig
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [finished]);
 
+  // Each fact's clock starts when it is shown (and when the minute starts).
+  useEffect(() => {
+    shownAt.current = now();
+  }, [fact, started]);
+
   const pick = (value: number) => {
     if (finished || wrong.includes(value)) return;
     if (value === fact.answer) {
       beep(880, 0.08);
+      memory.record(fact.key, wrong.length === 0, now() - shownAt.current);
+      const next = sprintFact(config.facts, memory.facts, Math.random, fact.key);
       setScore(score + 1);
       setWrong([]);
-      setFact(factFor(config.facts));
+      setFact(next);
+      setChoices(factChoices(next));
     } else {
       beep(220, 0.1);
       setWrong([...wrong, value]);
@@ -74,7 +87,7 @@ export default function SprintGame({ config, onSolved }: RoundProps<SprintConfig
         <span>✓ <strong>{score}</strong></span>
       </div>
       <p className="sprint-fact" aria-live="polite">{fact.text.includes("?") ? fact.text : `${fact.text} = ?`}</p>
-      <NumberChoices key={fact.text + score} values={fact.choices} onPick={pick} wrong={wrong} disabled={finished} />
+      <NumberChoices key={fact.key + score} values={choices} onPick={pick} wrong={wrong} disabled={finished} />
     </div>
   );
 }

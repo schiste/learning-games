@@ -1,8 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { speakFrench } from "../audio";
-import { ALL_STEPS, CHAPTERS, findStep, type Chapter } from "./curriculum";
+import { ALL_STEPS, CHAPTERS, factSetUnlocks, findStep, unlockedFactSets, type Chapter } from "./curriculum";
+import { FactMemoryContext, type FactMemory } from "./factMemory";
+import { dueCount, reviewQueue, today, updateFact, type FactItem } from "./facts";
+import MasteryPage from "./MasteryPage";
+import ReviewPlayer from "./ReviewPlayer";
 import {
   activeProfile,
+  addPoints,
+  markPlayed,
   chapterScore,
   createProfile,
   loadStore,
@@ -47,22 +53,53 @@ export default function AdventurePage({ stepId, onOpen }: { stepId: string | nul
     );
   }
 
+  const setsInReview = unlockedFactSets((id) => Boolean(profile.steps[id]));
+  const memory: FactMemory = {
+    facts: profile.facts,
+    record: (key, firstTry, ms) => change((before) => updateProfile(before, profile.id, (player) => ({
+      ...player,
+      facts: { ...player.facts, [key]: updateFact(player.facts[key], firstTry, ms, today()) },
+    }))),
+  };
+  const withMemory = (content: ReactNode) => <FactMemoryContext.Provider value={memory}>{content}</FactMemoryContext.Provider>;
+
+  if (stepId === "revision") {
+    return withMemory(
+      <section className="game-stage m-stage accent-plum" aria-label="Révision du jour" data-step="revision" data-engine="review">
+        <div className="m-stage-bar">
+          <button className="m-back" onClick={() => onOpen(null)} aria-label="Retour à la carte">← Carte</button>
+          <div className="m-stage-title"><small>🧠 Les bases</small><h2>Révision du jour</h2></div>
+        </div>
+        <div className="m-stage-body">
+          <Review sets={setsInReview} facts={profile.facts} onBack={() => onOpen(null)}
+            onFinish={(points) => change((before) => updateProfile(before, profile.id, (player) => markPlayed(addPoints(player, points), today())))} />
+        </div>
+      </section>,
+    );
+  }
+
+  if (stepId === "progres") {
+    return <MasteryPage profile={profile} onBack={() => onOpen(null)} onOpen={onOpen} />;
+  }
+
   if (current) {
-    return (
+    return withMemory(
       <StepPlayer
         key={current.step.id}
         step={current.step}
         chapter={current.chapter}
         previousBest={profile.steps[current.step.id]?.best ?? 0}
         onOpen={onOpen}
-        onFinish={(stars, points) => change((before) => updateProfile(before, profile.id, (player) => recordStep(player, current.step.id, stars, points)))}
-      />
+        onFinish={(stars, points) => change((before) => updateProfile(before, profile.id, (player) => markPlayed(recordStep(player, current.step.id, stars, points), today())))}
+      />,
     );
   }
 
   const suggestion = suggestedStep(profile);
   const suggestionChapter = findStep(suggestion.id)!.chapter;
   const started = Object.keys(profile.steps).length > 0;
+  const due = dueCount(setsInReview, profile.facts, today());
+  const streak = profile.lastDay >= today() - 1 ? profile.streak : 0;
 
   return (
     <div className="m-map">
@@ -75,6 +112,7 @@ export default function AdventurePage({ stepId, onOpen }: { stepId: string | nul
               <span>★ {totalStars(profile)} / {ALL_STEPS.length * 3}</span>
               <span>🏆 {profile.points} points</span>
               <span>✅ {Object.keys(profile.steps).length} / {ALL_STEPS.length} étapes</span>
+              {streak > 0 && <span>🔥 {streak} jour{streak > 1 ? "s" : ""} de suite</span>}
             </div>
           </div>
         </div>
@@ -82,6 +120,20 @@ export default function AdventurePage({ stepId, onOpen }: { stepId: string | nul
           <span className="m-continue-icon" aria-hidden="true">{suggestionChapter.icon}</span>
           <span><small>{started ? "Continuer" : "Commencer"}</small><strong>{suggestion.title}</strong></span>
           <span aria-hidden="true">▶</span>
+        </button>
+      </div>
+      <div className="m-basics">
+        <button className="m-basics-card accent-plum" onClick={() => onOpen("revision")} disabled={setsInReview.length === 0}>
+          <span className="m-basics-icon" aria-hidden="true">🧠</span>
+          <span>
+            <strong>Révision du jour</strong>
+            <small>{setsInReview.length === 0 ? `Se débloque avec « ${factSetUnlocks()[0]?.step.title} »` : due > 0 ? `${due} calcul${due > 1 ? "s" : ""} à revoir aujourd’hui` : "Entretiens ta mémoire des calculs"}</small>
+          </span>
+          {due > 0 && <b className="m-due">{due}</b>}
+        </button>
+        <button className="m-basics-card accent-teal" onClick={() => onOpen("progres")}>
+          <span className="m-basics-icon" aria-hidden="true">📊</span>
+          <span><strong>Mes progrès</strong><small>Ce que je sais par cœur</small></span>
         </button>
       </div>
       {CHAPTERS.map((chapter, index) => (
@@ -135,4 +187,15 @@ function ChapterTrail({ chapter, number, profile, suggestedId, onOpen }: {
       </ol>
     </section>
   );
+}
+
+/** Picks today's review once, when the session opens, so answering does not reshuffle it. */
+function Review({ sets, facts, onFinish, onBack }: {
+  sets: Parameters<typeof reviewQueue>[0];
+  facts: Parameters<typeof reviewQueue>[1];
+  onFinish: (points: number) => void;
+  onBack: () => void;
+}) {
+  const [queue] = useState<FactItem[]>(() => reviewQueue(sets, facts, today()));
+  return <ReviewPlayer queue={queue} onFinish={onFinish} onBack={onBack} />;
 }
