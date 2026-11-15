@@ -63,8 +63,20 @@ export function fewestCoins(amount: number, values: number[]): number[] {
 /* ---------- Word problems: understand the story, choose the operation, then compute ---------- */
 
 export type ProblemKind = "join" | "separate" | "compare" | "groups" | "share";
-export type ProblemConfig = { kinds: ProblemKind[]; max: number };
-export type ProblemRound = { kind: ProblemKind; story: string; question: string; a: number; b: number; op: "+" | "−" | "×" | "÷"; answer: number; choices: number[] };
+/**
+ * `showSchema`: name the story structure from the start (schema-based instruction); at CE2 the child
+ * must recognise it. `distractor`: add a sentence with a number that is not needed (IES 2021, Rec. 5).
+ */
+export type ProblemConfig = { kinds: ProblemKind[]; max: number; showSchema?: boolean; distractor?: boolean };
+
+export const SCHEMA: Record<ProblemKind, { name: string; icon: string; sentence: string }> = {
+  join: { name: "Histoire d’ajout", icon: "➕", sentence: "C’est une histoire d’ajout." },
+  separate: { name: "Histoire de retrait", icon: "➖", sentence: "C’est une histoire de retrait." },
+  compare: { name: "Histoire de comparaison", icon: "⚖️", sentence: "C’est une histoire de comparaison." },
+  groups: { name: "Groupes égaux", icon: "📦", sentence: "Ce sont des groupes égaux." },
+  share: { name: "Partage équitable", icon: "🍰", sentence: "C’est un partage équitable." },
+};
+export type ProblemRound = { kind: ProblemKind; story: string; question: string; extra: number | null; a: number; b: number; op: "+" | "−" | "×" | "÷"; answer: number; choices: number[] };
 
 const PEOPLE = [
   { name: "Léo", pronoun: "il" }, { name: "Inès", pronoun: "elle" }, { name: "Sami", pronoun: "il" }, { name: "Jade", pronoun: "elle" },
@@ -72,7 +84,19 @@ const PEOPLE = [
 ] as const;
 
 /** Short stories of the classic structures: add, take away, compare, equal groups and sharing. */
-export function problemRound({ kinds, max }: ProblemConfig, rng: Rng = Math.random): ProblemRound {
+export function problemRound(config: ProblemConfig, rng: Rng = Math.random): ProblemRound {
+  const round = baseProblem(config, rng);
+  if (!config.distractor) return round;
+  // A number that must not be used: never equal to the data or to the answer, so using it is always wrong.
+  let extra = randomInt(2, 12, rng);
+  while ([round.a, round.b, round.answer].includes(extra)) extra += 1;
+  const sentence = pick([`Il est ${extra} heures.`, `Dehors, ${extra} oiseaux chantent.`, `La classe a ${extra} fenêtres.`, `Le bus a ${extra} minutes de retard.`], rng);
+  const sentences = round.story.split(/(?<=\.)\s+/);
+  sentences.splice(1, 0, sentence);
+  return { ...round, extra, story: sentences.join(" ") };
+}
+
+function baseProblem({ kinds, max }: ProblemConfig, rng: Rng): ProblemRound {
   const kind = pick(kinds, rng);
   const [first, second] = shuffle(PEOPLE, rng);
   const [p1, p2] = [first.name, second.name];
@@ -82,28 +106,28 @@ export function problemRound({ kinds, max }: ProblemConfig, rng: Rng = Math.rand
     case "join": {
       const a = randomInt(2, Math.floor(max / 2), rng);
       const b = randomInt(2, max - a, rng);
-      return { kind, story: `${p1} a ${a} billes. ${p2} lui en donne ${b}.`, question: `Combien de billes a ${p1} maintenant ?`, a, b, op: "+", answer: a + b, choices: choices(a + b) };
+      return { kind, extra: null, story: `${p1} a ${a} billes. ${p2} lui en donne ${b}.`, question: `Combien de billes a ${p1} maintenant ?`, a, b, op: "+", answer: a + b, choices: choices(a + b) };
     }
     case "separate": {
       const a = randomInt(6, max, rng);
       const b = randomInt(1, a - 1, rng);
-      return { kind, story: `${p1} a ${a} bonbons. ${Pronoun} en mange ${b}.`, question: "Combien en reste-t-il ?", a, b, op: "−", answer: a - b, choices: choices(a - b) };
+      return { kind, extra: null, story: `${p1} a ${a} bonbons. ${Pronoun} en mange ${b}.`, question: "Combien en reste-t-il ?", a, b, op: "−", answer: a - b, choices: choices(a - b) };
     }
     case "compare": {
       const b = randomInt(2, Math.floor(max / 2), rng);
       const a = b + randomInt(1, Math.floor(max / 2), rng);
-      return { kind, story: `${p1} a ${a} cartes. ${p2} a ${b} cartes.`, question: `Combien de cartes ${p1} a-t-${first.pronoun} de plus que ${p2} ?`, a, b, op: "−", answer: a - b, choices: choices(a - b) };
+      return { kind, extra: null, story: `${p1} a ${a} cartes. ${p2} a ${b} cartes.`, question: `Combien de cartes ${p1} a-t-${first.pronoun} de plus que ${p2} ?`, a, b, op: "−", answer: a - b, choices: choices(a - b) };
     }
     case "groups": {
       const a = randomInt(2, 6, rng);
       const b = randomInt(2, Math.min(10, Math.floor(max / a)) || 2, rng);
-      return { kind, story: `Il y a ${a} boîtes de ${b} crayons.`, question: "Combien de crayons en tout ?", a, b, op: "×", answer: a * b, choices: choices(a * b) };
+      return { kind, extra: null, story: `Il y a ${a} boîtes de ${b} crayons.`, question: "Combien de crayons en tout ?", a, b, op: "×", answer: a * b, choices: choices(a * b) };
     }
     case "share": {
       const b = randomInt(2, 5, rng);
       const answer = randomInt(2, Math.max(2, Math.floor(max / b)), rng);
       const a = answer * b;
-      return { kind, story: `${p1} partage ${a} images entre ${b} amis, autant pour chacun.`, question: "Combien d’images pour chaque ami ?", a, b, op: "÷", answer, choices: choices(answer) };
+      return { kind, extra: null, story: `${p1} partage ${a} images entre ${b} amis, autant pour chacun.`, question: "Combien d’images pour chaque ami ?", a, b, op: "÷", answer, choices: choices(answer) };
     }
   }
 }

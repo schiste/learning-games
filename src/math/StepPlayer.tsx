@@ -23,6 +23,7 @@ import CompareGame from "./games/CompareGame";
 import CountGame from "./games/CountGame";
 import FlashGame from "./games/FlashGame";
 import SprintGame from "./games/SprintGame";
+import WorkedExample from "./WorkedExample";
 
 /** Renders one round of a step. The switch keeps each engine paired with its own config type. */
 function Round({ step, onSolved }: { step: Step; onSolved: (result: RoundResult) => void }) {
@@ -64,6 +65,8 @@ export default function StepPlayer({ step, chapter, previousBest, history, onFin
   const [lastGain, setLastGain] = useState<number | null>(null);
   const [result, setResult] = useState<{ stars: StarCount; points: number; summary?: string; score?: number } | null>(null);
   const [attempt, setAttempt] = useState(0);
+  // Strategy steps open with their worked example; it can be reopened at any time.
+  const [showExample, setShowExample] = useState(Boolean(step.example));
   const roundStart = useRef(0);
   // Each round's clock starts when it appears on screen.
   useEffect(() => {
@@ -107,6 +110,7 @@ export default function StepPlayer({ step, chapter, previousBest, history, onFin
           <h2>{step.title}</h2>
         </div>
         {step.engine === "sprint" && <span className="chrono-badge" title="Jeu chronométré">⏱ Chrono {step.config.seconds} s</span>}
+        {step.example && !result && !showExample && <button className="m-back" onClick={() => setShowExample(true)}>💡 Exemple</button>}
         <ol className="m-round-dots" aria-label={`Manche ${Math.min(round + 1, step.rounds)} sur ${step.rounds}`}>
           {Array.from({ length: step.rounds }, (_, index) => (
             <li key={index} className={result || index < round ? "is-done" : index === round ? "is-current" : ""} />
@@ -123,7 +127,9 @@ export default function StepPlayer({ step, chapter, previousBest, history, onFin
               {result.score !== undefined && <ChronoChart scores={[...history, result.score]} highlightLast />}
             </StepDone>
           )
-          : (
+          : showExample && step.example
+            ? <WorkedExample lines={step.example} onDone={() => { setShowExample(false); setAttempt(attempt + 1); }} />
+            : (
             <div className="m-round" key={`${step.id}-${attempt}-${round}`}>
               {seconds && <Countdown seconds={seconds} />}
               <Round step={step} onSolved={solved} />
