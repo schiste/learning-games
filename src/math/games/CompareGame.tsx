@@ -2,7 +2,7 @@ import { useState } from "react";
 import { beep, speakFrench } from "../../audio";
 import { compareAnswer, compareRound, type CompareConfig } from "../logic";
 import { Hint, Prompt } from "../ui";
-import { useTimeouts, type RoundProps } from "../hooks";
+import { now, useTimeouts, type RoundProps } from "../hooks";
 
 type Side = "left" | "right";
 
@@ -33,10 +33,11 @@ export default function CompareGame({ config, onSolved }: RoundProps<CompareConf
   const choose = (side: Side) => {
     if (solved) return;
     if (side === answer) {
+      const solvedAt = now();
       setSolved(side);
       beep(880, 0.12);
       speakFrench("Oui !", 1);
-      later(() => onSolved({ mistakes }), 1000);
+      later(() => onSolved({ mistakes, solvedAt }), 1000);
     } else {
       setWrong(side);
       setMistakes(mistakes + 1);

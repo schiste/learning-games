@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { fanfare, speakFrench } from "../audio";
-import { nextStep, type Chapter, type Step } from "./curriculum";
-import { roundStars } from "./logic";
-import type { Stars as StarCount } from "./progress";
-import { Stars } from "./ui";
-import { type RoundResult } from "./hooks";
+import { nextStep, roundSeconds, type Chapter, type Step } from "./curriculum";
+import { roundPoints, roundStars } from "./logic";
+import type { Stars as StarCount } from "./profiles";
+import { Countdown, Stars } from "./ui";
+import { now, type RoundResult } from "./hooks";
 import BondsGame from "./games/BondsGame";
 import BuildGame from "./games/BuildGame";
 import CompareGame from "./games/CompareGame";
@@ -24,33 +24,50 @@ function Round({ step, onSolved }: { step: Step; onSolved: (result: RoundResult)
   }
 }
 
-export default function StepPlayer({ step, chapter, onFinish, onOpen }: {
+export default function StepPlayer({ step, chapter, previousBest, onFinish, onOpen }: {
   step: Step;
   chapter: Chapter;
-  onFinish: (stars: StarCount) => void;
+  /** Best score before this play, to celebrate a new record. */
+  previousBest: number;
+  onFinish: (stars: StarCount, points: number) => void;
   onOpen: (stepId: string | null) => void;
 }) {
   const [round, setRound] = useState(0);
   const [mistakes, setMistakes] = useState(0);
-  const [result, setResult] = useState<{ stars: StarCount; summary?: string } | null>(null);
+  const [points, setPoints] = useState(0);
+  const [lastGain, setLastGain] = useState<number | null>(null);
+  const [result, setResult] = useState<{ stars: StarCount; points: number; summary?: string } | null>(null);
   const [attempt, setAttempt] = useState(0);
+  const roundStart = useRef(0);
+  // Each round's clock starts when it appears on screen.
+  useEffect(() => {
+    roundStart.current = now();
+  }, [round, attempt]);
   const following = nextStep(step.id);
+  const seconds = roundSeconds(step);
 
-  const solved = ({ mistakes: roundMistakes, stars, summary }: RoundResult) => {
+  const solved = ({ mistakes: roundMistakes, solvedAt, stars, points: ownPoints, summary }: RoundResult) => {
     const totalMistakes = mistakes + roundMistakes;
+    const elapsed = ((solvedAt ?? now()) - roundStart.current) / 1000;
+    const gain = ownPoints ?? roundPoints(roundMistakes, seconds ? 1 - elapsed / seconds : 0);
+    const totalPoints = points + gain;
     setMistakes(totalMistakes);
+    setPoints(totalPoints);
+    setLastGain(gain);
     if (round + 1 < step.rounds) {
       setRound(round + 1);
       return;
     }
     const earned = stars ?? roundStars(totalMistakes);
-    setResult({ stars: earned, summary });
-    onFinish(earned);
+    setResult({ stars: earned, points: totalPoints, summary });
+    onFinish(earned, totalPoints);
   };
 
   const replay = () => {
     setRound(0);
     setMistakes(0);
+    setPoints(0);
+    setLastGain(null);
     setResult(null);
     setAttempt(attempt + 1);
   };
@@ -68,27 +85,45 @@ export default function StepPlayer({ step, chapter, onFinish, onOpen }: {
             <li key={index} className={result || index < round ? "is-done" : index === round ? "is-current" : ""} />
           ))}
         </ol>
+        <span className="m-stage-score" aria-live="polite">
+          🏆 {points}{lastGain !== null && !result && <span className="m-points-pop" key={`${round}-${attempt}`}> +{lastGain}</span>}
+        </span>
       </div>
       <div className="m-stage-body">
         {result
-          ? <StepDone stars={result.stars} summary={result.summary} hasNext={following !== null} onReplay={replay} onNext={() => onOpen(following?.id ?? null)} />
-          : <Round key={`${step.id}-${attempt}-${round}`} step={step} onSolved={solved} />}
+          ? <StepDone stars={result.stars} points={result.points} record={result.points > previousBest && previousBest > 0} summary={result.summary} hasNext={following !== null} onReplay={replay} onNext={() => onOpen(following?.id ?? null)} />
+          : (
+            <div className="m-round" key={`${step.id}-${attempt}-${round}`}>
+              {seconds && <Countdown seconds={seconds} />}
+              <Round step={step} onSolved={solved} />
+            </div>
+          )}
       </div>
     </section>
   );
 }
 
-function StepDone({ stars, summary, hasNext, onReplay, onNext }: { stars: StarCount; summary?: string; hasNext: boolean; onReplay: () => void; onNext: () => void }) {
+function StepDone({ stars, points, record, summary, hasNext, onReplay, onNext }: {
+  stars: StarCount;
+  points: number;
+  record: boolean;
+  summary?: string;
+  hasNext: boolean;
+  onReplay: () => void;
+  onNext: () => void;
+}) {
   const title = stars === 3 ? "Bravo, champion !" : stars === 2 ? "Très bien !" : "Bien joué !";
   useEffect(() => {
     fanfare();
-    speakFrench(summary ? `${title} ${summary}` : title, 0.95);
-  }, [summary, title]);
+    speakFrench(`${title} ${summary ?? ""} ${points} points.${record ? " Nouveau record !" : ""}`, 0.95);
+  }, [summary, title, points, record]);
   return (
     <div className="m-done" aria-live="polite">
       <Stars value={stars} size="lg" />
       <h2>{title}</h2>
       {summary && <p>{summary}</p>}
+      <p><strong>🏆 {points} points</strong></p>
+      {record && <p className="m-record">🎉 Nouveau record !</p>}
       {stars < 3 && <p className="m-note">Rejoue pour gagner toutes les étoiles.</p>}
       <div className="m-done-actions">
         <button className="m-secondary" onClick={onReplay}>↻ Rejouer</button>

@@ -146,8 +146,8 @@
 .m-done-actions { margin-top: 14px; display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; }
 
 /* ---------- Ten-frame & dice ---------- */
-.m-frame { width: min(100%, 420px); padding: 12px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; border: 3px solid var(--ink); border-radius: 20px; background: var(--soft); }
-.m-frame.is-5 { width: min(100%, 420px); }
+.m-frame { width: min(100%, 350px); padding: 10px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; border: 3px solid var(--ink); border-radius: 20px; background: var(--soft); }
+.m-frame.is-5 { width: min(100%, 350px); }
 .m-frame-cell { aspect-ratio: 1; min-width: 0; padding: 0; display: grid; place-items: center; border: 3px solid var(--ink); border-radius: 14px; background: white; }
 .m-frame-cell i { width: 68%; aspect-ratio: 1; border-radius: 50%; box-shadow: inset -4px -5px rgba(59,47,47,.15); }
 .m-frame-cell.is-filled i { background: var(--sky); }
@@ -200,9 +200,9 @@
 
 /* ---------- Bonds (number houses) ---------- */
 .m-house { width: 240px; }
-.m-house-roof { height: 76px; display: grid; place-items: end center; padding-bottom: 6px; background: var(--berry); clip-path: polygon(50% 0, 100% 100%, 0 100%); color: white; font-size: 34px; }
+.m-house-roof { height: 60px; display: grid; place-items: end center; padding-bottom: 6px; background: var(--berry); clip-path: polygon(50% 0, 100% 100%, 0 100%); color: white; font-size: 34px; }
 .m-house-rooms { display: grid; grid-template-columns: 1fr 1fr; border: 3px solid var(--ink); border-top: 0; background: white; }
-.m-house-room { height: 76px; display: grid; place-items: center; font-size: 38px; font-weight: 700; }
+.m-house-room { height: 62px; display: grid; place-items: center; font-size: 34px; font-weight: 700; }
 .m-house-room + .m-house-room { border-left: 3px solid var(--ink); }
 .m-house-room.is-missing { background: #fff4cf; color: #b48a00; }
 .m-house-room.is-found { background: var(--good); color: white; animation: pop-in .35s ease-out; }
@@ -238,3 +238,44 @@
 @media (prefers-reduced-motion: reduce) {
   .m-step.is-next { animation: none; }
 }
+
+/* ---------- Countdown & score ---------- */
+.m-countdown { width: min(100%, 520px); margin: 0 auto 6px; display: flex; align-items: center; gap: 10px; color: #6f6054; }
+.m-countdown > span { font-size: 22px; }
+.m-countdown small { min-width: 104px; font-size: 14px; text-align: left; }
+.m-countdown-track { flex: 1; height: 14px; overflow: hidden; border: 2px solid var(--ink); border-radius: 999px; background: white; }
+.m-countdown-track i { display: block; height: 100%; background: linear-gradient(90deg, var(--leaf), var(--sun)); transform-origin: left; animation: m-drain linear forwards; }
+.m-countdown.is-ended .m-countdown-track { border-color: #cdbd9f; }
+@keyframes m-drain { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+.m-stage-score { padding: 6px 12px; border: 2px solid var(--ink); border-radius: 999px; background: white; font-weight: 700; white-space: nowrap; }
+.m-points-pop { color: var(--good); font-weight: 700; animation: pop-in .3s ease-out; }
+.m-record { padding: 6px 14px; border-radius: 999px; background: var(--sun); font-weight: 700; animation: pop-in .4s ease-out; }
+@media (prefers-reduced-motion: reduce) { .m-countdown-track i { animation-timing-function: steps(10); } }
+.m-round { width: 100%; display: grid; justify-items: center; gap: 8px; }
+
+/* ---------- Profiles ---------- */
+.m-profiles { margin: 26px auto 0; padding: 26px 20px 30px; display: grid; justify-items: center; gap: 16px; border: 3px solid var(--ink); border-radius: 30px; background: white; box-shadow: 8px 10px 0 var(--soft); text-align: center; }
+.m-profiles h1 { margin: 0; font-size: clamp(28px, 5vw, 40px); }
+.m-profiles p { margin: 0; color: #6f6054; font-size: 18px; }
+.m-avatar-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+.m-avatar { width: 70px; height: 70px; border: 3px solid var(--ink); border-radius: 22px; background: var(--paper); font-size: 38px; cursor: pointer; }
+.m-avatar.is-selected { background: var(--sun); transform: scale(1.08); box-shadow: 0 4px 0 color-mix(in srgb, var(--sun) 50%, var(--ink)); }
+.m-name-field { display: grid; gap: 6px; font-size: 16px; color: #6f6054; }
+.m-name-field input { width: min(80vw, 280px); min-height: 52px; padding: 8px 14px; border: 3px solid var(--ink); border-radius: 16px; font: inherit; font-size: 22px; text-align: center; }
+.m-player-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; }
+.m-player { position: relative; }
+.m-player-card { width: 150px; min-height: 160px; padding: 14px 10px; display: grid; justify-items: center; align-content: center; gap: 6px; border: 3px solid var(--ink); border-radius: 26px; background: var(--paper); cursor: pointer; box-shadow: 0 5px 0 var(--soft); }
+.m-player-card:hover { transform: translateY(-2px); }
+.m-player-card.is-new { border-style: dashed; background: white; }
+.m-player-avatar { font-size: 54px; line-height: 1; }
+.m-player-card strong { font-size: 20px; }
+.m-player-card small { color: #6f6054; }
+.m-player-remove { position: absolute; top: -10px; right: -10px; min-width: 36px; height: 36px; padding: 0 10px; border: 2px solid var(--oops); border-radius: 999px; background: white; color: var(--oops); font-weight: 700; cursor: pointer; }
+.m-player-remove.is-confirm { background: var(--oops); color: white; font-size: 13px; }
+.m-link { border: 0; background: none; color: #806f61; text-decoration: underline; text-underline-offset: 4px; cursor: pointer; font-size: 15px; }
+.m-who { display: flex; align-items: center; gap: 12px; }
+.m-who-avatar { width: 62px; height: 62px; display: grid; place-items: center; border: 3px solid var(--ink); border-radius: 50%; background: var(--paper); font-size: 36px; cursor: pointer; padding: 0; }
+.m-scoreboard { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.m-scoreboard span { padding: 5px 12px; border-radius: 999px; background: var(--paper); border: 2px solid var(--soft); font-weight: 700; font-size: 15px; }
+.m-step-best { font-size: 12px; color: #6f6054; }
+@media (max-width: 560px) { .m-avatar { width: 56px; height: 56px; font-size: 30px; } .m-player-card { width: 136px; } }

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { beep } from "../../audio";
-import { factFor, sprintStars, type Fact, type SprintConfig } from "../logic";
+import { factFor, sprintPoints, sprintStars, type Fact, type SprintConfig } from "../logic";
 import { NumberChoices, Prompt } from "../ui";
 import { type RoundProps } from "../hooks";
 
@@ -34,7 +34,7 @@ export default function SprintGame({ config, onSolved }: RoundProps<SprintConfig
   }, [started, finished]);
 
   useEffect(() => {
-    if (finished) onSolved({ mistakes, stars: sprintStars(score), summary: `${score} bonne${score > 1 ? "s" : ""} réponse${score > 1 ? "s" : ""} en une minute !` });
+    if (finished) onSolved({ mistakes, stars: sprintStars(score), points: sprintPoints(score), summary: `${score} bonne${score > 1 ? "s" : ""} réponse${score > 1 ? "s" : ""} en une minute !` });
     // Report once, when the minute ends.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [finished]);
