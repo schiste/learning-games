@@ -4,7 +4,7 @@ Des jeux tactiles, libres et gratuits pour apprendre les mathématiques du CP au
 
 ## L’aventure des nombres
 
-Les maths forment un seul parcours guidé : **11 chapitres et 65 étapes**, dans l’ordre où l’on apprend. L’étape suivante est toujours proposée, mais aucune n’est verrouillée.
+Les maths forment un seul parcours guidé : **11 chapitres et 72 étapes**, dans l’ordre où l’on apprend. L’étape suivante est toujours proposée, mais aucune n’est verrouillée.
 
 1. **Compter** — toucher chaque objet en comptant, reconnaître le dé, comparer.
 2. **Faire 10** — le cadre de dix, les maisons des nombres, le chrono du 10.
@@ -18,7 +18,7 @@ Les maths forment un seul parcours guidé : **11 chapitres et 65 étapes**, dans
 10. **Les fractions** — lire et colorier des parts égales.
 11. **Énigmes** — suites, sudoku de chiffres, détective des nombres.
 
-Chaque étape s’appuie sur l’un des 18 « moteurs » de jeu (compter, cadre de dix, blocs de numération, ligne des nombres, horloge, monnaie, schéma en barres, sudoku…) avec sa propre configuration : la même manipulation sert au CP puis au CE2, et l’aide visuelle disparaît progressivement.
+Chaque étape s’appuie sur l’un des 19 « moteurs » de jeu (compter, cadre de dix, blocs de numération, ligne des nombres, horloge, monnaie, schéma en barres, sudoku…) avec sa propre configuration : la même manipulation sert au CP puis au CE2, et l’aide visuelle disparaît progressivement.
 
 ### Jamais d’échec, toujours une piste
 
@@ -34,6 +34,14 @@ Chaque étape s’appuie sur l’un des 18 « moteurs » de jeu (compter, cadre 
 ### Les bases, par cœur
 
 Les compléments à 10, les additions et soustractions, les doubles, le passage de la dizaine et **toutes les tables de 2 à 9** sont suivis fait par fait. Une réponse rapide fait monter le calcul d’une boîte (révision espacée de type Leitner : 0, 1, 2, 4, 7 puis 14 jours) ; une erreur le fait revenir au début. La **Révision du jour** propose d’abord les calculs fragiles, et **Mes progrès** montre ce qui est su par cœur, table par table.
+
+### Fondé sur la recherche
+
+Chaque mécanique s’appuie sur des travaux publiés : représentations concrètes puis abstraites, ligne des nombres et estimation sur ligne vide, exemples résolus, problèmes classés par structure, activités chronométrées conduites selon le guide IES 2021, mémoire espacée et pratique entrelacée. Le détail, avec les sources et les limites, est dans [docs/PEDAGOGIE.md](docs/PEDAGOGIE.md).
+
+### Défis chrono
+
+Les jeux chronométrés sont rassemblés dans **Défis chrono** et repérés partout par un chronomètre rouge. Chaque minute commence par une astuce, ne compte que les réponses justes du premier coup, corrige une erreur avec une stratégie, et affiche le graphique personnel de l’enfant pour « égaler ou battre » son record.
 
 ## Apprendre à lire
 
@@ -62,11 +70,12 @@ npm run check
 
 - `src/App.tsx` contient l’en-tête et la navigation ; `src/route.ts` lit l’adresse.
 - `src/math/curriculum.ts` décrit les chapitres et les étapes : chaque étape = un moteur + une configuration.
-- `src/math/games/` contient les 18 moteurs de jeu ; `src/math/StepPlayer.tsx` enchaîne les manches, le compte à rebours et les points.
+- `src/math/games/` contient les 19 moteurs de jeu ; `src/math/StepPlayer.tsx` enchaîne les manches, le compte à rebours et les points.
 - `src/math/logic.ts`, `puzzles.ts` et `everyday.ts` génèrent les exercices (fonctions pures, testées).
 - `src/math/facts.ts` énumère les faits numériques et applique la révision espacée.
 - `src/math/profiles.ts` gère les joueurs, les scores et le stockage local.
 - `src/ReadingPage.tsx` et `src/readingLogic.ts` contiennent le parcours de lecture.
+- `docs/PEDAGOGIE.md` relie chaque choix pédagogique à ses sources.
 - `.github/workflows/deploy.yml` vérifie puis publie le site sur GitHub Pages.
 
 ## Contribuer
