@@ -46,67 +46,84 @@ export function patternHint(round: PatternRound): string {
   return `Regarde de combien on avance à chaque fois : ${round.items[0]} → ${round.items[1]}. Ici, ${verb}.`;
 }
 
-/* ---------- Mystery number: deduce from clues ---------- */
+/* ---------- Mystery number: deduce from clues, one clue at a time ---------- */
 
 export type MysteryConfig = { min: number; max: number };
-export type Clue = { text: string; test: (value: number) => boolean };
-export type MysteryRound = { target: number; candidates: number[]; clues: string[] };
-
-function clueBank(target: number, min: number, max: number, rng: Rng): Clue[] {
-  const units = target % 10;
-  const tens = Math.floor(target / 10) % 10;
-  const clues: Clue[] = [
-    target % 2 === 0 ? { text: "Je suis pair.", test: (value) => value % 2 === 0 } : { text: "Je suis impair.", test: (value) => value % 2 === 1 },
-    { text: `Mon chiffre des unités est ${units}.`, test: (value) => value % 10 === units },
-  ];
-  const lower = Math.max(min, target - randomInt(2, 8, rng));
-  const upper = Math.min(max, target + randomInt(2, 8, rng));
-  if (lower > min) clues.push({ text: `Je suis plus grand que ${lower - 1}.`, test: (value) => value > lower - 1 });
-  if (upper < max) clues.push({ text: `Je suis plus petit que ${upper + 1}.`, test: (value) => value < upper + 1 });
-  if (target >= 10) clues.push({ text: `Mon chiffre des dizaines est ${tens}.`, test: (value) => Math.floor(value / 10) % 10 === tens && value >= 10 });
-  if (target >= 10) clues.push({ text: `La somme de mes chiffres est ${digitSum(target)}.`, test: (value) => digitSum(value) === digitSum(target) });
-  if (target % 5 === 0) clues.push({ text: "Je suis dans la table de 5.", test: (value) => value % 5 === 0 });
-  if (target % 3 === 0 && target > 0) clues.push({ text: "Je suis dans la table de 3.", test: (value) => value % 3 === 0 });
-  return clues;
-}
+type Clue = { text: string; tip: string; test: (value: number) => boolean };
+/** One revealed clue: what it says, the pattern to look for, and the numbers it rules out among those still in play. */
+export type MysteryStep = { text: string; tip: string; excluded: number[] };
+export type MysteryRound = { target: number; candidates: number[]; steps: MysteryStep[] };
 
 function digitSum(value: number): number {
   return String(value).split("").reduce((sum, digit) => sum + Number(digit), 0);
 }
 
+function lowerBound(bound: number): Clue {
+  return { text: `Je suis plus grand que ${bound}.`, tip: `Barre ${bound} et tous les nombres plus petits.`, test: (value) => value > bound };
+}
+
+function upperBound(bound: number): Clue {
+  return { text: `Je suis plus petit que ${bound}.`, tip: `Barre ${bound} et tous les nombres plus grands.`, test: (value) => value < bound };
+}
+
 /**
- * Clues are added in random order until exactly one number of the grid fits all of them,
- * so the puzzle is always solvable and never has two answers.
+ * Clues true for the target. A one-digit answer never gets its units digit (or its digit sum,
+ * which is the same number): those would give the answer away instead of making the child reason.
+ */
+function clueBank(target: number, first: number, last: number, rng: Rng): Clue[] {
+  const units = target % 10;
+  const tens = Math.floor(target / 10) % 10;
+  const clues: Clue[] = [
+    target % 2 === 0
+      ? { text: "Je suis pair.", tip: "Les nombres pairs finissent par 0, 2, 4, 6 ou 8 : barre les autres.", test: (value) => value % 2 === 0 }
+      : { text: "Je suis impair.", tip: "Les nombres impairs finissent par 1, 3, 5, 7 ou 9 : barre les autres.", test: (value) => value % 2 === 1 },
+  ];
+  if (target > first) clues.push(lowerBound(randomInt(Math.max(first, target - 8), target - 1, rng)));
+  if (target < last) clues.push(upperBound(randomInt(target + 1, Math.min(last, target + 8), rng)));
+  if (target >= 10) {
+    clues.push({ text: `Mon chiffre des unités est ${units}.`, tip: "Regarde le dernier chiffre de chaque nombre.", test: (value) => value % 10 === units });
+    clues.push({ text: `Mon chiffre des dizaines est ${tens}.`, tip: "Le chiffre des dizaines est le premier chiffre : 3 dans 34.", test: (value) => value >= 10 && Math.floor(value / 10) % 10 === tens });
+    clues.push({ text: `La somme de mes chiffres est ${digitSum(target)}.`, tip: "Additionne les deux chiffres : pour 23, 2 + 3 = 5.", test: (value) => digitSum(value) === digitSum(target) });
+  }
+  if (target % 5 === 0) clues.push({ text: "Je suis dans la table de 5.", tip: "Les nombres de la table de 5 finissent par 0 ou 5.", test: (value) => value % 5 === 0 });
+  if (target % 3 === 0) clues.push({ text: "Je suis dans la table de 3.", tip: "La table de 3 : 3, 6, 9, 12, 15, 18, 21, 24, 27, 30…", test: (value) => value % 3 === 0 });
+  return clues;
+}
+
+/** Applies clues in order, keeping only those that rule out at least one number still in play. */
+function chain(clues: Clue[], candidates: number[]): { steps: MysteryStep[]; remaining: number[] } {
+  const steps: MysteryStep[] = [];
+  let remaining = candidates;
+  for (const clue of clues) {
+    if (remaining.length === 1) break;
+    const excluded = remaining.filter((value) => !clue.test(value));
+    if (!excluded.length) continue;
+    steps.push({ text: clue.text, tip: clue.tip, excluded });
+    remaining = remaining.filter(clue.test);
+  }
+  return { steps, remaining };
+}
+
+/**
+ * The grid is chosen first (up to 20 numbers, 30 beyond 100), then clues are added in random order
+ * until exactly one number remains. Every clue rules out something, so the child always has
+ * numbers to cross out before the next clue appears.
  */
 export function mysteryRound({ min, max }: MysteryConfig, rng: Rng = Math.random): MysteryRound {
+  const span = Math.min(max - min + 1, max - min >= 99 ? 30 : 20);
   for (let attempt = 0; attempt < 500; attempt += 1) {
     const target = randomInt(min, max, rng);
-    const all = Array.from({ length: max - min + 1 }, (_, index) => min + index);
-    const bank = shuffle(clueBank(target, min, max, rng), rng);
-    const chosen: Clue[] = [];
-    let remaining = all;
-    for (const clue of bank) {
-      const next = remaining.filter(clue.test);
-      if (next.length === remaining.length) continue;
-      chosen.push(clue);
-      remaining = next;
-      if (remaining.length === 1) break;
-    }
-    if (remaining.length === 1 && chosen.length >= 2) {
-      // Show a manageable grid around the answer: up to 20 numbers for young children.
-      const span = Math.min(all.length, max - min >= 99 ? 30 : 20);
-      const first = Math.max(min, Math.min(max - span + 1, target - randomInt(0, span - 1, rng)));
-      const candidates = Array.from({ length: span }, (_, index) => first + index);
-      if (candidates.filter((value) => chosen.every((clue) => clue.test(value))).length === 1) {
-        return { target, candidates, clues: chosen.map((clue) => clue.text) };
-      }
-    }
+    const first = Math.max(min, Math.min(max - span + 1, target - randomInt(0, span - 1, rng)));
+    const candidates = Array.from({ length: span }, (_, index) => first + index);
+    const { steps, remaining } = chain(shuffle(clueBank(target, first, candidates.at(-1)!, rng), rng), candidates);
+    if (remaining.length === 1 && remaining[0] === target && steps.length >= 2) return { target, candidates, steps };
   }
-  // Practically unreachable; a 10-number window with its units digit always has a single answer.
-  const target = randomInt(min, max, rng);
-  const first = Math.max(min, target - (target % 10));
-  const candidates = Array.from({ length: Math.min(10, max - first + 1) }, (_, index) => first + index);
-  return { target, candidates, clues: [`Mon chiffre des unités est ${target % 10}.`, `Je suis entre ${first} et ${candidates.at(-1)}.`] };
+  // Practically unreachable: parity, then tight bounds always isolate the target without its units digit.
+  const target = randomInt(Math.max(min, 2), Math.min(max, min + span - 2), rng);
+  const candidates = Array.from({ length: span }, (_, index) => min + index);
+  const parity = clueBank(target, min, candidates.at(-1)!, rng)[0];
+  const { steps } = chain([parity, lowerBound(target - 1), upperBound(target + 1)], candidates);
+  return { target, candidates, steps };
 }
 
 /* ---------- Mini-sudoku 4×4: every row, column and 2×2 box holds each symbol once ---------- */
