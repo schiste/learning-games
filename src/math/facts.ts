@@ -166,7 +166,7 @@ export function factStrategy(fact: FactItem): string {
   const small = Math.min(a, b);
   switch (fact.set) {
     case "complements10":
-      return `Pense au cadre de 10 : avec ${a} jetons, il reste ${10 - a} cases vides.`;
+      return `Pense au cadre de 10 : avec ${a} jeton${a > 1 ? "s" : ""}, il reste ${10 - a} case${10 - a > 1 ? "s" : ""} vide${10 - a > 1 ? "s" : ""}.`;
     case "doubles":
       return a > 5 ? `${a} + ${a} : 5 + 5 = 10, et encore ${a - 5} + ${a - 5} = ${2 * (a - 5)}. Ça fait ${2 * a}.` : `Un double : ${a} doigts et encore ${a} doigts, ça fait ${2 * a}.`;
     case "add10":
