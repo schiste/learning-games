@@ -25,6 +25,13 @@ Current rebuild prompt (2026-11-15): Make the project math-first for CP–CE2 as
 - 2026-11-15: Removed « Faire 10 », « Construire les nombres » and « Les bases du cycle 2 » (including spelling and grammar); old links land on the adventure. Reading is unchanged.
 - 2026-11-15: Delivered in eight merged PRs (#6–#13), each deployed by GitHub Pages; every step was completed in a real browser and the 375 px layouts checked for overflow.
 
+Research prompt (2026-11-15): Keep on math, read the latest math teaching research, embed it in the system, and make the chrono-based games visible.
+
+- 2026-11-15: Reviewed IES 2021 (six strong-evidence recommendations, incl. timed activities pp. 51–55), EEF 2020, Barbieri et al. 2023 (worked examples), Rohrer et al. 2020 (interleaving), Siegler (number line estimation), schema-based word-problem meta-analyses, and the timed-test anxiety debate.
+- 2026-11-15: « Défis chrono » hub and red stopwatch badges; sprints follow IES Rec. 6 (strategy reminder, first-try-only score, strategy feedback per fact, easy-to-hard ramp, private chart with meet-or-beat, readiness after teaching steps); two interleaved sprints.
+- 2026-11-15: Worked examples on 16 strategy steps; schema-named word problems with an irrelevant-data step at CE2; number-line estimation on unmarked lines (0–10 to 0–1 000).
+- 2026-11-15: docs/PEDAGOGIE.md maps each principle to its sources, its limits and its place in the code.
+
 ## Progress
 
 - 2026-09-05: Defined three shared complexity grades: Découverte, Entraînement, Défi.
