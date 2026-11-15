@@ -1,3 +1,4 @@
+import type { FactSet } from "./facts";
 import { nearbyChoices, pick, randomInt, shuffle, type Rng } from "./random";
 
 /** Friendly objects to count. Emoji keep the scenes recognisable without any reading. */
@@ -97,60 +98,9 @@ export function bondsHint(part: number, picked: number, total: number, frame: bo
     : `${part} et ${picked}, ça fait ${sum} : il en manque encore.`;
 }
 
-/* ---------- Sprint: one timed minute of number facts ---------- */
+/* ---------- Sprint: one timed minute of number facts (facts come from facts.ts) ---------- */
 
-export type FactSet = "complements10" | "add10" | "sub10" | "doubles" | "add20" | "sub20" | "tens" | "tables2-5" | "tables";
 export type SprintConfig = { facts: FactSet; seconds: number };
-export type Fact = { text: string; answer: number; choices: number[] };
-
-export function factFor(facts: FactSet, rng: Rng = Math.random): Fact {
-  const make = (text: string, answer: number, max: number) => ({ text, answer, choices: nearbyChoices(answer, 4, 0, max, rng) });
-  switch (facts) {
-    case "complements10": {
-      const a = randomInt(0, 10, rng);
-      return make(`${a} + ? = 10`, 10 - a, 10);
-    }
-    case "add10": {
-      const a = randomInt(0, 10, rng);
-      const b = randomInt(0, 10 - a, rng);
-      return make(`${a} + ${b}`, a + b, 10);
-    }
-    case "sub10": {
-      const a = randomInt(1, 10, rng);
-      const b = randomInt(0, a, rng);
-      return make(`${a} − ${b}`, a - b, 10);
-    }
-    case "doubles": {
-      const a = randomInt(1, 10, rng);
-      return make(`${a} + ${a}`, a * 2, 20);
-    }
-    case "add20": {
-      const a = randomInt(2, 9, rng);
-      const b = randomInt(11 - a, 9, rng);
-      return make(`${a} + ${b}`, a + b, 20);
-    }
-    case "sub20": {
-      const a = randomInt(11, 18, rng);
-      const b = randomInt(a - 9, 9, rng);
-      return make(`${a} − ${b}`, a - b, 20);
-    }
-    case "tens": {
-      const a = randomInt(1, 9, rng) * 10;
-      const b = randomInt(1, (100 - a) / 10, rng) * 10;
-      return make(`${a} + ${b}`, a + b, 100);
-    }
-    case "tables2-5": {
-      const a = randomInt(2, 5, rng);
-      const b = randomInt(1, 10, rng);
-      return make(`${a} × ${b}`, a * b, 50);
-    }
-    case "tables": {
-      const a = randomInt(2, 9, rng);
-      const b = randomInt(2, 9, rng);
-      return make(`${a} × ${b}`, a * b, 81);
-    }
-  }
-}
 
 /** Stars for a minute of practice: generous, because speed comes with time. */
 export function sprintStars(score: number): 1 | 2 | 3 {

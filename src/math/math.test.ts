@@ -8,15 +8,16 @@ import {
   compareAnswer,
   compareRound,
   countRound,
-  factFor,
   flashRound,
   roundPoints,
   roundStars,
   sprintStars,
-  type FactSet,
 } from "./logic";
 import { activeProfile, chapterScore, createProfile, loadStore, recordStep, removeProfile, saveStore, suggestedStep, type ProfileStore } from "./profiles";
 import { nearbyChoices } from "./random";
+import { factSetUnlocks, unlockedFactSets } from "./curriculum";
+import { FACT_SET_INFO, factByKey, factsIn, isMastered, reviewQueue, sprintFact, updateFact, type FactSet } from "./facts";
+import { markPlayed } from "./profiles";
 
 const RUNS = 300;
 
@@ -89,33 +90,6 @@ describe("bonds", () => {
   it("explains a wrong part with the sum it really makes", () => {
     expect(bondsHint(6, 5, 10, true)).toBe("6 et 5, ça fait 11 : c’est trop !");
     expect(bondsHint(6, 2, 10, false)).toContain("il en manque encore");
-  });
-});
-
-describe("sprint facts", () => {
-  const sets: FactSet[] = ["complements10", "add10", "sub10", "doubles", "add20", "sub20", "tens", "tables2-5", "tables"];
-  it.each(sets)("%s facts are correct, non-negative and offered among the choices", (set) => {
-    for (let run = 0; run < RUNS; run += 1) {
-      const fact = factFor(set);
-      expect(fact.answer).toBeGreaterThanOrEqual(0);
-      expect(fact.choices).toContain(fact.answer);
-      const [a, op, b] = fact.text.split(" ");
-      if (fact.text.includes("?")) {
-        expect(Number(a) + fact.answer).toBe(10);
-      } else {
-        const expected = op === "+" ? Number(a) + Number(b) : op === "−" ? Number(a) - Number(b) : Number(a) * Number(b);
-        expect(fact.answer).toBe(expected);
-      }
-    }
-  });
-
-  it("add20 and sub20 always cross ten, the skill they are there to train", () => {
-    for (let run = 0; run < RUNS; run += 1) {
-      const add = factFor("add20");
-      expect(add.answer).toBeGreaterThan(10);
-      const [a, , b] = factFor("sub20").text.split(" ").map(Number);
-      expect(a % 10).toBeLessThan(b);
-    }
   });
 });
 
@@ -212,6 +186,80 @@ describe("points", () => {
     expect(roundPoints(0, -3)).toBe(10);
     expect(roundPoints(1, 0.5)).toBe(9);
     expect(roundPoints(4, 0)).toBe(3);
+  });
+});
+
+describe("facts", () => {
+  const sets = Object.keys(FACT_SET_INFO) as FactSet[];
+
+  it.each(sets)("%s facts are correct, unique and offered with their answer in range", (set) => {
+    const items = factsIn(set);
+    expect(items.length).toBeGreaterThan(0);
+    expect(new Set(items.map((fact) => fact.key)).size).toBe(items.length);
+    for (const fact of items) {
+      expect(fact.answer).toBeGreaterThanOrEqual(0);
+      expect(fact.answer).toBeLessThanOrEqual(fact.max);
+      const [a, op, b] = fact.text.split(" ");
+      const expected = fact.text.includes("?") ? 10 - Number(a) : op === "+" ? Number(a) + Number(b) : op === "−" ? Number(a) - Number(b) : Number(a) * Number(b);
+      expect(fact.answer).toBe(expected);
+      expect(factByKey(fact.key)).toBe(fact);
+    }
+  });
+
+  it("covers the whole tables of 2 to 9 and every crossing of ten", () => {
+    expect(factsIn("tables")).toHaveLength(64);
+    expect(factsIn("add20").every((fact) => fact.answer > 10)).toBe(true);
+    expect(factsIn("sub20").every((fact) => fact.a % 10 < fact.b && fact.answer < 10)).toBe(true);
+  });
+
+  it("moves a fact up only when it is recalled fast, and back to the start after a mistake", () => {
+    let stat = updateFact(undefined, true, 2000, 100);
+    expect(stat).toEqual({ box: 1, right: 1, wrong: 0, due: 101 });
+    stat = updateFact(stat, true, 9000, 101);
+    expect(stat.box).toBe(1);
+    expect(stat.due).toBe(102);
+    stat = updateFact(updateFact(stat, true, 1000, 102), true, 1000, 104);
+    expect(isMastered(stat)).toBe(true);
+    stat = updateFact(stat, false, 1000, 110);
+    expect(stat).toMatchObject({ box: 0, due: 110 });
+  });
+
+  it("reviews due facts first, weakest first, and adds a few new ones", () => {
+    const facts = {
+      "tables:7:8": { box: 0, right: 0, wrong: 2, due: 10 },
+      "tables:2:2": { box: 4, right: 4, wrong: 0, due: 99 },
+    };
+    const queue = reviewQueue(["tables"], facts, 10, 4, 3);
+    expect(queue).toHaveLength(4);
+    expect(queue.map((fact) => fact.key)).toContain("tables:7:8");
+    expect(queue.map((fact) => fact.key)).not.toContain("tables:2:2");
+  });
+
+  it("sprints mostly ask facts that are not known yet and never repeat the same fact twice in a row", () => {
+    const known = Object.fromEntries(factsIn("complements10").slice(1).map((fact) => [fact.key, { box: 5, right: 5, wrong: 0, due: 999 }]));
+    let weak = 0;
+    for (let run = 0; run < 400; run += 1) {
+      const fact = sprintFact("complements10", known);
+      if (fact.key === "complements10:0:10") weak += 1;
+      expect(sprintFact("complements10", known, Math.random, fact.key).key).not.toBe(fact.key);
+    }
+    expect(weak).toBeGreaterThan(200);
+  });
+
+  it("joins the review once the step that teaches it is finished", () => {
+    const first = factSetUnlocks()[0];
+    expect(unlockedFactSets(() => false)).toEqual([]);
+    expect(unlockedFactSets((id) => id === first.step.id)).toEqual([first.set]);
+  });
+});
+
+describe("streak", () => {
+  const base = { id: "a", name: "A", avatar: "🦊", points: 0, steps: {}, facts: {}, streak: 0, lastDay: 0 };
+  it("grows on consecutive days and restarts after a gap", () => {
+    const day1 = markPlayed(base, 50);
+    expect(markPlayed(day1, 50).streak).toBe(1);
+    expect(markPlayed(day1, 51).streak).toBe(2);
+    expect(markPlayed(markPlayed(day1, 51), 53).streak).toBe(1);
   });
 });
 

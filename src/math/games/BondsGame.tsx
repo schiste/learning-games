@@ -1,8 +1,9 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { beep, speakFrench } from "../../audio";
 import { bondsHint, bondsRound, type BondsConfig } from "../logic";
 import { Hint, NumberChoices, Prompt } from "../ui";
-import { useAnswer, type RoundProps } from "../hooks";
+import { now, useAnswer, type RoundProps } from "../hooks";
+import { useFactMemory } from "../factMemory";
 import { TenFrame } from "../visuals";
 
 /**
@@ -12,7 +13,17 @@ import { TenFrame } from "../visuals";
 export default function BondsGame({ config, onSolved }: RoundProps<BondsConfig>) {
   const [round] = useState(() => bondsRound(config));
   const [added, setAdded] = useState(0);
-  const { pick, wrong, solved, hint } = useAnswer(round.missing, onSolved, (picked) => bondsHint(round.part, picked, round.total, config.frame));
+  const memory = useFactMemory();
+  const shownAt = useRef(0);
+  useEffect(() => {
+    shownAt.current = now();
+  }, []);
+  // Making 10 is a fact to know by heart: these rounds feed the same memory as the daily review.
+  const finish: typeof onSolved = (result) => {
+    if (round.total === 10) memory.record(`complements10:${round.part}:${round.missing}`, result.mistakes === 0, (result.solvedAt ?? now()) - shownAt.current);
+    onSolved(result);
+  };
+  const { pick, wrong, solved, hint } = useAnswer(round.missing, finish, (picked) => bondsHint(round.part, picked, round.total, config.frame));
   const choices = round.choices.filter((value) => value >= 1 && value < round.total);
 
   // The ref sees every tap immediately, so quick successive taps each count.

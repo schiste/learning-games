@@ -13,6 +13,9 @@ export type Profile = {
   points: number;
   steps: Record<string, StepRecord>;
   facts: Record<string, FactStat>;
+  /** Consecutive days with at least one finished step or review, and the last such day. */
+  streak: number;
+  lastDay: number;
 };
 export type ProfileStore = { activeId: string | null; profiles: Profile[] };
 
@@ -46,7 +49,7 @@ export function saveStore(store: ProfileStore, storage: Writer | undefined = saf
 }
 
 export function createProfile(store: ProfileStore, name: string, avatar: string, id = newId()): ProfileStore {
-  const profile: Profile = { id, name: name.trim().slice(0, 20) || avatarName(avatar), avatar, points: 0, steps: {}, facts: {} };
+  const profile: Profile = { id, name: name.trim().slice(0, 20) || avatarName(avatar), avatar, points: 0, steps: {}, facts: {}, streak: 0, lastDay: 0 };
   return { activeId: id, profiles: [...store.profiles, profile] };
 }
 
@@ -72,6 +75,17 @@ export function recordStep(profile: Profile, stepId: string, stars: Stars, score
     plays: (before?.plays ?? 0) + 1,
   };
   return { ...profile, points: profile.points + score, steps: { ...profile.steps, [stepId]: record } };
+}
+
+/** Count today as a playing day: playing again tomorrow grows the streak, skipping a day restarts it. */
+export function markPlayed(profile: Profile, day: number): Profile {
+  if (profile.lastDay === day) return profile;
+  return { ...profile, streak: profile.lastDay === day - 1 ? profile.streak + 1 : 1, lastDay: day };
+}
+
+/** Lifetime points earned outside the steps (daily review). */
+export function addPoints(profile: Profile, points: number): Profile {
+  return { ...profile, points: profile.points + points };
 }
 
 export function totalStars(profile: Profile): number {
@@ -111,7 +125,7 @@ function sanitizeStore(raw: unknown): ProfileStore {
   const candidate = raw as Partial<ProfileStore>;
   const profiles = Array.isArray(candidate.profiles)
     ? candidate.profiles.filter((profile): profile is Profile => Boolean(profile && typeof profile.id === "string" && typeof profile.name === "string"))
-      .map((profile) => ({ ...profile, points: Number(profile.points) || 0, steps: profile.steps ?? {}, facts: profile.facts ?? {} }))
+      .map((profile) => ({ ...profile, points: Number(profile.points) || 0, steps: profile.steps ?? {}, facts: profile.facts ?? {}, streak: Number(profile.streak) || 0, lastDay: Number(profile.lastDay) || 0 }))
     : [];
   const activeId = profiles.some((profile) => profile.id === candidate.activeId) ? candidate.activeId ?? null : null;
   return { activeId, profiles };
