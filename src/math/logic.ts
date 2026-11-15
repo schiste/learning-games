@@ -159,6 +159,21 @@ export function sprintStars(score: number): 1 | 2 | 3 {
   return 1;
 }
 
+/**
+ * Points for one round: accuracy first (10, 6 or 3), plus up to 5 bonus points
+ * for the time left on the countdown. Running out of time only removes the bonus.
+ */
+export function roundPoints(mistakes: number, timeLeft: number): number {
+  const base = mistakes === 0 ? 10 : mistakes === 1 ? 6 : 3;
+  const bonus = Math.round(5 * Math.min(1, Math.max(0, timeLeft)));
+  return base + bonus;
+}
+
+/** Points for a timed minute: every right answer counts. */
+export function sprintPoints(score: number): number {
+  return score * 5;
+}
+
 /** Stars for a step made of several rounds. Mistakes are allowed; they only soften the reward. */
 export function roundStars(mistakes: number): 1 | 2 | 3 {
   if (mistakes <= 1) return 3;

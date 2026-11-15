@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { beep, speakFrench } from "../../audio";
 import { buildHint, buildRound, type BuildConfig } from "../logic";
 import { Hint, Prompt } from "../ui";
-import { useTimeouts, type RoundProps } from "../hooks";
+import { now, useTimeouts, type RoundProps } from "../hooks";
 
 /**
  * Making a collection of a given size. The basket is laid out in rows of five,
@@ -33,10 +33,11 @@ export default function BuildGame({ config, onSolved }: RoundProps<BuildConfig>)
   const check = () => {
     if (solved) return;
     if (placed === round.target) {
+      const solvedAt = now();
       setSolved(true);
       beep(880, 0.12);
       speakFrench(`Bravo, ${round.target} !`, 0.95);
-      later(() => onSolved({ mistakes }), 1100);
+      later(() => onSolved({ mistakes, solvedAt }), 1100);
     } else {
       setMistakes(mistakes + 1);
       setHint(buildHint(placed, round.target));

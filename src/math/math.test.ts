@@ -10,11 +10,12 @@ import {
   countRound,
   factFor,
   flashRound,
+  roundPoints,
   roundStars,
   sprintStars,
   type FactSet,
 } from "./logic";
-import { loadProgress, recordStars, saveProgress, suggestedStep } from "./progress";
+import { activeProfile, chapterScore, createProfile, loadStore, recordStep, removeProfile, saveStore, suggestedStep, type ProfileStore } from "./profiles";
 import { nearbyChoices } from "./random";
 
 const RUNS = 300;
@@ -151,30 +152,66 @@ describe("curriculum", () => {
   });
 });
 
-describe("progress", () => {
-  const memory = () => {
-    const data = new Map<string, string>();
+describe("profiles", () => {
+  const memory = (initial: Record<string, string> = {}) => {
+    const data = new Map<string, string>(Object.entries(initial));
     return { getItem: (key: string) => data.get(key) ?? null, setItem: (key: string, value: string) => void data.set(key, value) };
   };
+  const empty: ProfileStore = { activeId: null, profiles: [] };
 
-  it("round-trips through storage and keeps the best result", () => {
+  it("creates an active player, named after the avatar when no name is given", () => {
+    const store = createProfile(empty, "  ", "🐼", "a");
+    expect(activeProfile(store)?.name).toBe("Panda");
+    expect(createProfile(store, "Léa", "🦊", "b").activeId).toBe("b");
+  });
+
+  it("keeps best stars and best score per step while lifetime points always grow", () => {
+    let player = activeProfile(createProfile(empty, "Léa", "🦊", "a"))!;
+    player = recordStep(player, "count-5", 3, 60);
+    player = recordStep(player, "count-5", 2, 40);
+    expect(player.steps["count-5"]).toEqual({ stars: 3, best: 60, plays: 2 });
+    expect(player.points).toBe(100);
+    expect(chapterScore(player, CHAPTERS[0])).toEqual({ stars: 3, best: 60, done: 1 });
+  });
+
+  it("round-trips through storage", () => {
     const storage = memory();
-    let progress = recordStars({}, "count-5", 2);
-    progress = recordStars(progress, "count-5", 1);
-    saveProgress(progress, storage);
-    expect(loadProgress(storage)).toEqual({ "count-5": 2 });
+    const store = createProfile(empty, "Léa", "🦊", "a");
+    saveStore(store, storage);
+    expect(loadStore(storage)).toEqual(store);
+  });
+
+  it("migrates stars saved before profiles existed", () => {
+    const store = loadStore(memory({ "dix-sur-dix:progress:v1": JSON.stringify({ "count-5": 2, bogus: 9 }) }));
+    expect(activeProfile(store)?.steps).toEqual({ "count-5": { stars: 2, best: 0, plays: 1 } });
   });
 
   it("survives corrupt or blocked storage", () => {
-    expect(loadProgress({ getItem: () => "{not json" })).toEqual({});
-    expect(loadProgress({ getItem: () => JSON.stringify({ a: 7, b: 3 }) })).toEqual({ b: 3 });
-    expect(loadProgress({ getItem: () => { throw new Error("blocked"); } })).toEqual({});
-    expect(() => saveProgress({}, { setItem: () => { throw new Error("full"); } })).not.toThrow();
+    expect(loadStore({ getItem: () => "{not json" })).toEqual(empty);
+    expect(loadStore({ getItem: () => JSON.stringify({ activeId: "x", profiles: [{ nope: 1 }] }) })).toEqual(empty);
+    expect(loadStore({ getItem: () => { throw new Error("blocked"); } })).toEqual(empty);
+    expect(() => saveStore(empty, { setItem: () => { throw new Error("full"); } })).not.toThrow();
+  });
+
+  it("removing the active player returns to the picker", () => {
+    const store = createProfile(empty, "Léa", "🦊", "a");
+    expect(removeProfile(store, "a")).toEqual(empty);
   });
 
   it("suggests the first unfinished step", () => {
-    expect(suggestedStep({})).toBe(ALL_STEPS[0]);
-    expect(suggestedStep({ [ALL_STEPS[0].id]: 1 })).toBe(ALL_STEPS[1]);
+    const player = activeProfile(createProfile(empty, "Léa", "🦊", "a"))!;
+    expect(suggestedStep(player)).toBe(ALL_STEPS[0]);
+    expect(suggestedStep(recordStep(player, ALL_STEPS[0].id, 1, 10))).toBe(ALL_STEPS[1]);
+  });
+});
+
+describe("points", () => {
+  it("rewards accuracy first, then speed, and never punishes running out of time", () => {
+    expect(roundPoints(0, 1)).toBe(15);
+    expect(roundPoints(0, 0)).toBe(10);
+    expect(roundPoints(0, -3)).toBe(10);
+    expect(roundPoints(1, 0.5)).toBe(9);
+    expect(roundPoints(4, 0)).toBe(3);
   });
 });
 

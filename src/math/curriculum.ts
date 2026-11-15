@@ -72,3 +72,18 @@ export function nextStep(id: string): Step | null {
   const index = ALL_STEPS.findIndex((step) => step.id === id);
   return index >= 0 ? ALL_STEPS[index + 1] ?? null : null;
 }
+
+/**
+ * Countdown length for one round, in seconds: long enough to count every object or
+ * fill a frame calmly, shorter for recall. Timed sprints have their own minute.
+ */
+export function roundSeconds(step: Step): number | null {
+  switch (step.engine) {
+    case "count": return Math.round(8 + step.config.max * 1.2);
+    case "flash": return 10;
+    case "build": return Math.round(8 + step.config.max * 1.2);
+    case "compare": return step.config.mode === "objects" ? 10 : 8;
+    case "bonds": return step.config.frame ? 15 : 8;
+    case "sprint": return null;
+  }
+}

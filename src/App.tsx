@@ -55,8 +55,11 @@ export default function App() {
     window.location.hash = stepId ? `#maths/${encodeURIComponent(stepId)}` : "#maths";
   };
 
-  const tab = (href: string, label: string, active: boolean) => (
-    <a href={href} className={active ? "is-active" : ""} aria-current={active ? "page" : undefined}>{label}</a>
+  const tab = (href: string, label: string, active: boolean, icon?: string) => (
+    <a href={href} className={active ? "is-active" : ""} aria-current={active ? "page" : undefined}>
+      {icon && <span aria-hidden="true">{icon}</span>}
+      <span>{label}</span>
+    </a>
   );
 
   return (
@@ -72,8 +75,8 @@ export default function App() {
       </header>
 
       <nav className="topic-switch" aria-label="Choisir un parcours">
-        {tab("#maths", "🔢 Maths", route.topic === "maths")}
-        {tab("#lecture", "📖 Lire", route.topic === "reading")}
+        {tab("#maths", "Maths", route.topic === "maths", "🔢")}
+        {tab("#lecture", "Lire", route.topic === "reading", "📖")}
         {tab("#nombres", "Construire les nombres", route.topic === "decimal")}
         {tab("#cycle-2", "Cycle 2", route.topic === "core")}
       </nav>
