@@ -7,6 +7,9 @@ import {
   blocksRound,
   bondsHint,
   bridgeRound,
+  estimateError,
+  estimateMistakes,
+  estimateRound,
   groupsFactKeys,
   groupsRound,
   shareRound,
@@ -160,6 +163,23 @@ describe("number line", () => {
         expect(round.choices).toContain(round.target);
       }
     }
+  });
+});
+
+describe("number-line estimation", () => {
+  it.each([10, 20, 100, 1000])("targets up to %i stay away from the ends", (max) => {
+    for (let run = 0; run < RUNS; run += 1) {
+      const { target } = estimateRound({ max });
+      expect(target).toBeGreaterThanOrEqual(1);
+      expect(target).toBeLessThanOrEqual(max - 1);
+    }
+  });
+
+  it("scores closeness, never a plain wrong answer", () => {
+    expect(estimateError(48, 50, 100)).toBeCloseTo(0.02);
+    expect(estimateMistakes(estimateError(48, 50, 100))).toBe(0);
+    expect(estimateMistakes(estimateError(420, 500, 1000))).toBe(1);
+    expect(estimateMistakes(estimateError(2, 9, 10))).toBe(2);
   });
 });
 

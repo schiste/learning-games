@@ -283,3 +283,26 @@ export function shareRound({ maxFriends, maxEach, remainder }: ShareConfig, rng:
   const left = remainder ? randomInt(0, friends - 1, rng) : 0;
   return { friends, each, left, total: friends * each + left, thing: pick(THINGS, rng) };
 }
+
+/* ---------- Estimate: place a number on an unmarked line (Siegler & Booth) ---------- */
+
+export type EstimateConfig = { max: number };
+export type EstimateRound = { target: number };
+
+/** Targets avoid the very ends, where estimation is trivial. */
+export function estimateRound({ max }: EstimateConfig, rng: Rng = Math.random): EstimateRound {
+  const margin = Math.max(1, Math.round(max * 0.03));
+  return { target: randomInt(margin, max - margin, rng) };
+}
+
+/** Distance between the tap and the target, as a share of the whole line (percent absolute error). */
+export function estimateError(position: number, target: number, max: number): number {
+  return Math.abs(position - target) / max;
+}
+
+/** Estimation has no wrong answer, only closer or further: within 5 % is perfect, within 10 % good. */
+export function estimateMistakes(error: number): number {
+  if (error <= 0.05) return 0;
+  if (error <= 0.1) return 1;
+  return 2;
+}

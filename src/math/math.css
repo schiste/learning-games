@@ -514,3 +514,26 @@ button.f-part:not(:disabled):hover { background: #ffe2b0; }
 .worked-lines li::before { content: counter(step); position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; background: var(--accent); color: white; font-size: 15px; }
 .worked-lines li.is-new { animation: pop-in .3s ease-out; background: #fff8e1; }
 .b-schema { margin: 0; padding: 4px 14px; border: 2px solid var(--ink); border-radius: 999px; background: color-mix(in srgb, var(--accent) 22%, white); font-weight: 700; }
+
+/* ---------- Estimation on an unmarked line ---------- */
+.est-line { position: relative; width: min(100%, 720px); height: 110px; margin-top: 10px; padding: 0 22px; cursor: crosshair; touch-action: manipulation; border-radius: 16px; }
+.est-inner { position: relative; height: 100%; }
+.est-line:focus-visible { outline: 4px solid var(--leaf); outline-offset: 4px; }
+.est-track { position: absolute; left: 0; right: 0; top: 54px; height: 8px; border-radius: 4px; background: var(--ink); }
+.est-track::before, .est-track::after { content: ""; position: absolute; top: -12px; width: 6px; height: 32px; border-radius: 3px; background: var(--ink); }
+.est-track::before { left: 0; }
+.est-track::after { right: 0; }
+.est-end { position: absolute; top: 80px; font-size: 22px; font-weight: 700; }
+.est-end.is-start { left: 0; transform: translateX(-30%); }
+.est-end.is-end { right: 0; transform: translateX(30%); }
+.est-cursor { position: absolute; top: 34px; width: 4px; height: 48px; margin-left: -2px; border-radius: 2px; background: color-mix(in srgb, var(--accent) 70%, transparent); pointer-events: none; }
+.est-mark { position: absolute; top: 18px; transform: translateX(-50%); display: grid; justify-items: center; pointer-events: none; animation: pop-in .3s ease-out; }
+.est-mark::after { content: ""; width: 4px; height: 40px; border-radius: 2px; background: currentColor; }
+.est-mark b { padding: 1px 8px; border-radius: 999px; color: white; font-size: 14px; }
+.est-mark.is-child { color: var(--sky); }
+.est-mark.is-child b { background: var(--sky); }
+/* The target marker hangs below the line (label under the stick), the child's sits above it. */
+.est-mark.is-target { top: 62px; color: var(--good); }
+.est-mark.is-target::after { order: -1; }
+.est-mark.is-target b { background: var(--good); }
+.est-line.is-answered { cursor: default; }
