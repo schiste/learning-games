@@ -503,5 +503,7 @@ describe("routes", () => {
     expect(parseRoute("#faire-10")).toEqual({ topic: "maths", stepId: null });
     expect(parseRoute("#maths/make-10")).toEqual({ topic: "maths", stepId: "make-10" });
     expect(parseRoute("#lecture")).toEqual({ topic: "reading" });
+    expect(parseRoute("#nombres")).toEqual({ topic: "maths", stepId: null });
+    expect(parseRoute("#cycle-2")).toEqual({ topic: "maths", stepId: null });
   });
 });

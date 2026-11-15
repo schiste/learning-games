@@ -16,6 +16,15 @@ Current cycle-2 prompt: Implement all ten proposed fundamental spaces: addition/
 
 Current machine prompt: Record the future CE1 curriculum/timeline redesign as a GitHub issue, then rebuild « La machine » around the addition-house calculation method.
 
+Current rebuild prompt (2026-11-15): Make the project math-first for CP–CE2 as a guided adventure, keep reading, redo all exercises; add a countdown, scores per step / chapter / player with local profiles, make sure fundamentals such as the tables are always learned, and add logic.
+
+- 2026-11-15: Replaced the four flat menus with « L’aventure des nombres »: 11 chapters, 65 steps in teaching order, each step = one of 18 engines + a configuration. Next step suggested, nothing locked.
+- 2026-11-15: Added player profiles (local only), per-step best stars/score, chapter scores (sum of bests), lifetime points and day streaks; each round has a bonus countdown that never fails the round.
+- 2026-11-15: Added per-fact spaced repetition (Leitner boxes 0–5, intervals 0/1/2/4/7/14 days, speed counts) for complements to 10, +/−, doubles, crossing ten, tens and all tables 2–9; « Révision du jour » and « Mes progrès ».
+- 2026-11-15: Added logic (sequences, mystery number with unique-solution clues, uniquely solvable 4×4 sudoku), word problems with a bar model, clock, money and fractions.
+- 2026-11-15: Removed « Faire 10 », « Construire les nombres » and « Les bases du cycle 2 » (including spelling and grammar); old links land on the adventure. Reading is unchanged.
+- 2026-11-15: Delivered in eight merged PRs (#6–#13), each deployed by GitHub Pages; every step was completed in a real browser and the 375 px layouts checked for overflow.
+
 ## Progress
 
 - 2026-09-05: Defined three shared complexity grades: Découverte, Entraînement, Défi.
