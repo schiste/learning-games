@@ -8,6 +8,10 @@ import { now, type RoundResult } from "./hooks";
 import BlocksGame from "./games/BlocksGame";
 import BondsGame from "./games/BondsGame";
 import BridgeGame from "./games/BridgeGame";
+import ClockGame from "./games/ClockGame";
+import CoinsGame from "./games/CoinsGame";
+import FractionGame from "./games/FractionGame";
+import ProblemGame from "./games/ProblemGame";
 import GroupsGame from "./games/GroupsGame";
 import LineGame from "./games/LineGame";
 import MysteryGame from "./games/MysteryGame";
@@ -37,6 +41,10 @@ function Round({ step, onSolved }: { step: Step; onSolved: (result: RoundResult)
     case "pattern": return <PatternGame config={step.config} onSolved={onSolved} />;
     case "mystery": return <MysteryGame config={step.config} onSolved={onSolved} />;
     case "sudoku": return <SudokuGame config={step.config} onSolved={onSolved} />;
+    case "clock": return <ClockGame config={step.config} onSolved={onSolved} />;
+    case "coins": return <CoinsGame config={step.config} onSolved={onSolved} />;
+    case "problem": return <ProblemGame config={step.config} onSolved={onSolved} />;
+    case "fraction": return <FractionGame config={step.config} onSolved={onSolved} />;
   }
 }
 

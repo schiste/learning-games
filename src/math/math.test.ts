@@ -28,6 +28,7 @@ import { nearbyChoices } from "./random";
 import { factSetUnlocks, unlockedFactSets } from "./curriculum";
 import { FACT_SET_INFO, factByKey, factsIn, isMastered, reviewQueue, sprintFact, updateFact, type FactSet } from "./facts";
 import { markPlayed } from "./profiles";
+import { clockRound, coinsRound, fewestCoins, formatTime, fractionRound, fractionWords, handAngles, problemRound } from "./everyday";
 import { countSolutions, mysteryRound, patternRound, sudokuConflict, sudokuRound } from "./puzzles";
 
 const RUNS = 300;
@@ -263,6 +264,64 @@ describe("mini-sudoku", () => {
     expect(sudokuConflict(grid, 12, 0)).toBe("column");
     expect(sudokuConflict(grid, 5, 0)).toBe("box");
     expect(sudokuConflict(grid, 10, 0)).toBeNull();
+  });
+});
+
+describe("clock", () => {
+  it.each([[[0]], [[0, 30]], [[0, 15, 30, 45]], [[5]]] as const)("with minutes %j, the time is among four distinct choices", (minutes) => {
+    for (let run = 0; run < RUNS; run += 1) {
+      const round = clockRound({ minutes: [...minutes] });
+      const labels = round.choices.map(formatTime);
+      expect(new Set(labels).size).toBe(4);
+      expect(labels).toContain(formatTime(round.time));
+      expect(round.time.hour).toBeGreaterThanOrEqual(1);
+      expect(round.time.hour).toBeLessThanOrEqual(12);
+    }
+  });
+
+  it("moves the hour hand between the hours", () => {
+    expect(handAngles({ hour: 3, minute: 0 })).toEqual({ hour: 90, minute: 0 });
+    expect(handAngles({ hour: 3, minute: 30 })).toEqual({ hour: 105, minute: 180 });
+  });
+});
+
+describe("money", () => {
+  it("prices stay in range and the fewest-coins way adds up", () => {
+    for (let run = 0; run < RUNS; run += 1) {
+      const round = coinsRound({ max: 50, values: [1, 2, 5, 10, 20] });
+      expect(round.price).toBeLessThanOrEqual(50);
+      expect(fewestCoins(round.price, [1, 2, 5, 10, 20]).reduce((sum, value) => sum + value, 0)).toBe(round.price);
+    }
+    expect(fewestCoins(38, [1, 2, 5, 10, 20])).toEqual([20, 10, 5, 2, 1]);
+  });
+});
+
+describe("word problems", () => {
+  it("each structure has the right operation, a non-negative whole answer, and offers it", () => {
+    for (let run = 0; run < RUNS; run += 1) {
+      const round = problemRound({ kinds: ["join", "separate", "compare", "groups", "share"], max: 100 });
+      const expected = { "+": round.a + round.b, "−": round.a - round.b, "×": round.a * round.b, "÷": round.a / round.b }[round.op];
+      expect(round.answer).toBe(expected);
+      expect(Number.isInteger(round.answer) && round.answer >= 0).toBe(true);
+      expect(round.choices).toContain(round.answer);
+      expect(round.story).toMatch(/\d/);
+    }
+  });
+});
+
+describe("fractions", () => {
+  it("are proper, offered among distinct proper choices, and named in words", () => {
+    for (let run = 0; run < RUNS; run += 1) {
+      const round = fractionRound({ denominators: [3, 4, 5, 6, 8], mode: "read", unitOnly: false });
+      expect(round.numerator).toBeLessThan(round.denominator);
+      const keys = round.choices.map(([n, d]) => `${n}/${d}`);
+      expect(new Set(keys).size).toBe(4);
+      expect(keys).toContain(`${round.numerator}/${round.denominator}`);
+      expect(round.choices.every(([n, d]) => n > 0 && n < d)).toBe(true);
+    }
+    expect(fractionWords(1, 2)).toBe("un demi");
+    expect(fractionWords(3, 4)).toBe("trois quarts");
+    expect(fractionWords(2, 3)).toBe("deux tiers");
   });
 });
 

@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { speakFrench } from "../audio";
 import { useKeyboardNumbers } from "./keyboard";
 
@@ -74,7 +74,7 @@ export function Countdown({ seconds }: { seconds: number }) {
     <div className={`m-countdown ${ended ? "is-ended" : ""}`} role="timer" aria-label={ended ? "Prends ton temps" : `Bonus rapide : ${seconds} secondes`}>
       <span aria-hidden="true">{ended ? "🐢" : "⚡"}</span>
       <div className="m-countdown-track">
-        <i style={{ animationDuration: `${seconds}s` }} onAnimationEnd={() => setEnded(true)} />
+        <i style={{ "--countdown": `${seconds}s` } as CSSProperties} onAnimationEnd={() => setEnded(true)} />
       </div>
       <small>{ended ? "Prends ton temps" : "Bonus"}</small>
     </div>
