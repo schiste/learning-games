@@ -28,6 +28,7 @@ import { nearbyChoices } from "./random";
 import { factSetUnlocks, unlockedFactSets } from "./curriculum";
 import { FACT_SET_INFO, factByKey, factsIn, isMastered, reviewQueue, sprintFact, updateFact, type FactSet } from "./facts";
 import { markPlayed } from "./profiles";
+import { countSolutions, mysteryRound, patternRound, sudokuConflict, sudokuRound } from "./puzzles";
 
 const RUNS = 300;
 
@@ -204,6 +205,64 @@ describe("share", () => {
       expect(round.left).toBeLessThan(round.friends);
       expect(shareRound({ maxFriends: 4, maxEach: 5, remainder: false }).left).toBe(0);
     }
+  });
+});
+
+describe("sequences", () => {
+  it("continue a repeating motif and offer the next shape", () => {
+    for (let run = 0; run < RUNS; run += 1) {
+      const round = patternRound({ kind: "shapes", units: ["AB", "AAB", "ABC", "AABB"] });
+      const unit = round.rule.length;
+      const full = [...round.items, round.answer];
+      full.forEach((item, index) => { if (index >= unit) expect(item).toBe(full[index - unit]); });
+      expect(round.choices).toContain(round.answer);
+      expect(new Set(round.choices).size).toBe(3);
+    }
+  });
+
+  it("follow a constant rule and stay positive", () => {
+    for (let run = 0; run < RUNS; run += 1) {
+      const round = patternRound({ kind: "numbers", rules: ["+5", "-3", "x2", "-10"] });
+      const terms = [...round.items, round.answer].map(Number);
+      expect(terms.every((value) => value >= 0)).toBe(true);
+      const step = Number(round.rule.slice(1));
+      for (let index = 1; index < terms.length; index += 1) {
+        const expected = round.rule[0] === "+" ? terms[index - 1] + step : round.rule[0] === "-" ? terms[index - 1] - step : terms[index - 1] * step;
+        expect(terms[index]).toBe(expected);
+      }
+      expect(round.choices).toContain(round.answer);
+    }
+  });
+});
+
+describe("mystery number", () => {
+  it.each([[1, 20], [10, 99]])("between %i and %i, the clues leave exactly one number of the grid: the target", (min, max) => {
+    for (let run = 0; run < 150; run += 1) {
+      const round = mysteryRound({ min, max });
+      expect(round.candidates).toContain(round.target);
+      expect(round.clues.length).toBeGreaterThanOrEqual(2);
+      expect(round.candidates.every((value) => value >= min && value <= max)).toBe(true);
+    }
+  });
+});
+
+describe("mini-sudoku", () => {
+  it("builds valid grids whose puzzle has exactly one solution", () => {
+    for (let run = 0; run < 200; run += 1) {
+      const round = sudokuRound({ symbols: "digits", blanks: 11 });
+      round.solution.forEach((value, cell) => expect(sudokuConflict(round.solution, cell, value)).toBeNull());
+      expect(countSolutions(round.puzzle)).toBe(1);
+      round.puzzle.forEach((value, cell) => { if (value !== null) expect(value).toBe(round.solution[cell]); });
+      expect(round.puzzle.filter((value) => value === null).length).toBeGreaterThanOrEqual(8);
+    }
+  });
+
+  it("names the rule a move breaks", () => {
+    const grid = [0, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null];
+    expect(sudokuConflict(grid, 3, 0)).toBe("row");
+    expect(sudokuConflict(grid, 12, 0)).toBe("column");
+    expect(sudokuConflict(grid, 5, 0)).toBe("box");
+    expect(sudokuConflict(grid, 10, 0)).toBeNull();
   });
 });
 
