@@ -9,6 +9,8 @@ export type RoundResult = {
   /** Timed engines score themselves; round-based engines leave these to the step player. */
   stars?: 1 | 2 | 3;
   points?: number;
+  /** Raw score of a timed minute, kept in the child's chrono history. */
+  score?: number;
   summary?: string;
 };
 export type RoundProps<C> = { config: C; onSolved: (result: RoundResult) => void };

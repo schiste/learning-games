@@ -114,6 +114,7 @@ export const CHAPTERS: Chapter[] = [
       { id: "hop-tens", title: "Les bonds de 10", goal: "Ajouter 10, c’est changer les dizaines.", grade: "CE1", rounds: 5, engine: "line", config: { mode: "hop", max: 100, op: "±", hop: 10, maxHops: 4 } },
       { id: "sprint-20", title: "Chrono jusqu’à 20", goal: "Une minute pour passer la dizaine.", grade: "CE1", rounds: 1, engine: "sprint", config: { facts: "add20", seconds: 60 } },
       { id: "sprint-tens", title: "Chrono des dizaines", goal: "Une minute d’additions de dizaines.", grade: "CE1", rounds: 1, engine: "sprint", config: { facts: "tens", seconds: 60 } },
+      { id: "sprint-mixed-addsub", title: "Chrono mélangé", goal: "Additions et soustractions mélangées : je choisis la bonne astuce.", grade: "CE1", rounds: 1, engine: "sprint", config: { facts: "mixed", mix: ["complements10", "add10", "sub10", "doubles", "add20", "sub20", "tens"], seconds: 60 } },
     ],
   },
   {
@@ -170,6 +171,7 @@ export const CHAPTERS: Chapter[] = [
       { id: "array-6-9", title: "Les grands rectangles", goal: "Les tables de 6, 7, 8 et 9.", grade: "CE2", rounds: 6, engine: "groups", config: { tables: [6, 7, 8, 9], maxSize: 9, layout: "array" } },
       { id: "share-left", title: "Le partage et le reste", goal: "Parfois, il en reste : c’est le reste.", grade: "CE2", rounds: 4, engine: "share", config: { maxFriends: 5, maxEach: 6, remainder: true } },
       { id: "sprint-tables", title: "Chrono de toutes les tables", goal: "Une minute de tables de 2 à 9.", grade: "CE2", rounds: 1, engine: "sprint", config: { facts: "tables", seconds: 60 } },
+      { id: "sprint-mixed-all", title: "Le grand chrono", goal: "Tout ce que je sais, mélangé : +, − et ×.", grade: "CE2", rounds: 1, engine: "sprint", config: { facts: "mixed", mix: ["add20", "sub20", "tens", "tables2-5", "tables"], seconds: 60 } },
     ],
   },
   {
@@ -244,7 +246,8 @@ export function roundSeconds(step: Step): number | null {
 
 /** Which fact set each step adds to the review once finished. */
 export function stepTeaches(step: Step): FactSet | null {
-  return step.engine === "sprint" ? step.config.facts : step.teaches ?? null;
+  if (step.engine === "sprint") return step.config.facts === "mixed" ? null : step.config.facts;
+  return step.teaches ?? null;
 }
 
 /** Fact sets the player has met, in adventure order: these are what the daily review keeps fresh. */
@@ -265,4 +268,21 @@ export function factSetUnlocks(): Array<{ set: FactSet; step: Step }> {
     if (set && !seen.has(set)) seen.set(set, step);
   }
   return [...seen].map(([set, step]) => ({ set, step }));
+}
+
+/** Every timed minute of the adventure, in adventure order. */
+export function chronoSteps(): Array<{ step: Step; chapter: Chapter }> {
+  return CHAPTERS.flatMap((chapter) => chapter.steps.filter((step) => step.engine === "sprint").map((step) => ({ step, chapter })));
+}
+
+/**
+ * Timed practice comes after teaching (IES 2021): a chrono is "ready" once every step before it
+ * in its chapter is finished. It stays playable anyway; readiness is advice, not a lock.
+ */
+export function chronoReady(step: Step, finished: (stepId: string) => boolean): { ready: boolean; missing: Step[] } {
+  const chapter = CHAPTERS.find((candidate) => candidate.steps.includes(step));
+  if (!chapter) return { ready: true, missing: [] };
+  const before = chapter.steps.slice(0, chapter.steps.indexOf(step)).filter((candidate) => candidate.engine !== "sprint");
+  const missing = before.filter((candidate) => !finished(candidate.id));
+  return { ready: missing.length === 0, missing };
 }

@@ -80,3 +80,27 @@ export function Countdown({ seconds }: { seconds: number }) {
     </div>
   );
 }
+
+/**
+ * A child's own timed scores as bars, with the record line: progress is compared with oneself only
+ * (IES 2021: chart scores privately and aim to meet or beat the previous one).
+ */
+export function ChronoChart({ scores, highlightLast = false }: { scores: number[]; highlightLast?: boolean }) {
+  const shown = scores.slice(-10);
+  if (!shown.length) return null;
+  const top = Math.max(10, ...shown);
+  const best = Math.max(...shown.slice(0, highlightLast ? -1 : undefined), 0);
+  return (
+    <div className="chrono-chart" role="img" aria-label={`Mes derniers scores : ${shown.join(", ")}`}>
+      {best > 0 && <i className="chrono-record-line" style={{ bottom: `${(best / top) * 100}%` }} aria-hidden="true" />}
+      {shown.map((score, index) => {
+        const last = highlightLast && index === shown.length - 1;
+        return (
+          <span key={index} className={`chrono-bar ${last ? "is-last" : ""} ${last && score >= best ? "is-record" : ""}`} style={{ height: `${Math.max(6, (score / top) * 100)}%` }}>
+            <b>{score}</b>
+          </span>
+        );
+      })}
+    </div>
+  );
+}

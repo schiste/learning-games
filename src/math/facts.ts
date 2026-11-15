@@ -135,13 +135,108 @@ export function dueCount(sets: FactSet[], facts: Record<string, FactStat>, day: 
   return sets.flatMap(factsIn).filter((fact) => facts[fact.key] && facts[fact.key].due <= day).length;
 }
 
+/* ---------- Difficulty and strategies (IES 2021, Rec. 6; Baroody's counting → reasoning → recall) ---------- */
+
 /**
- * The next fact in a timed sprint: mostly facts that still need work, sometimes a known one
- * so the minute stays encouraging.
+ * How hard a fact is to recall, from 0 (easiest). Follows the usual teaching order:
+ * +0/+1 and doubles before other sums; ×1, ×2, ×10 then ×5, squares, ×3/×4, and last ×6–×9.
  */
-export function sprintFact(set: FactSet, facts: Record<string, FactStat>, rng: Rng = Math.random, avoid?: string): FactItem {
-  const items = factsIn(set).filter((fact) => fact.key !== avoid);
+export function factDifficulty(fact: FactItem): number {
+  const { a, b } = fact;
+  switch (fact.set) {
+    case "complements10": return Math.min(Math.abs(a - 5), a, 10 - a) === 0 ? 0 : Math.min(a, 10 - a);
+    case "add10": return a === b ? 1 : Math.min(a, b);
+    case "sub10": return Math.min(b, a - b);
+    case "doubles": return a <= 5 ? 0 : a === 10 ? 0 : a - 4;
+    case "add20": return (a === b || Math.abs(a - b) === 1 ? 0 : 1) + Math.min(10 - Math.max(a, b), 4);
+    case "sub20": return Math.min(b - (a - 10), a - 10) + (b === 9 ? 0 : 1);
+    case "tens": return Math.min(a, b) / 10;
+    case "tables2-5":
+    case "tables": {
+      const tier = (factor: number) => ([1, 2, 10].includes(factor) ? 0 : factor === 5 ? 1 : factor <= 4 ? 3 : 4);
+      return Math.min(tier(a), tier(b)) + (a === b ? 0 : 1);
+    }
+  }
+}
+
+/** An efficient strategy for one fact, said after a mistake so the child corrects it by reasoning, not guessing. */
+export function factStrategy(fact: FactItem): string {
+  const { a, b } = fact;
+  const big = Math.max(a, b);
+  const small = Math.min(a, b);
+  switch (fact.set) {
+    case "complements10":
+      return `Pense au cadre de 10 : avec ${a} jetons, il reste ${10 - a} cases vides.`;
+    case "doubles":
+      return a > 5 ? `${a} + ${a} : 5 + 5 = 10, et encore ${a - 5} + ${a - 5} = ${2 * (a - 5)}. Ça fait ${2 * a}.` : `Un double : ${a} doigts et encore ${a} doigts, ça fait ${2 * a}.`;
+    case "add10":
+    case "add20":
+      if (a === b) return `C’est un double : ${a} + ${a} = ${2 * a}.`;
+      if (big - small === 1) return `Double plus un : ${small} + ${small} = ${2 * small}, puis + 1 = ${2 * small + 1}.`;
+      if (a + b > 10) return `Fais 10 d’abord : ${big} + ${10 - big} = 10, puis 10 + ${small - (10 - big)} = ${a + b}.`;
+      return `Pars du plus grand, ${big}, et avance de ${small} : ${Array.from({ length: small }, (_, index) => big + index + 1).join(", ")}.`;
+    case "sub10":
+      if (b === 0) return `Enlever 0, ça ne change rien : ${a} − 0 = ${a}.`;
+      if (a === b) return `On enlève tout : ${a} − ${a} = 0.`;
+      return b <= 3
+        ? `Recule de ${b} depuis ${a} : ${Array.from({ length: b }, (_, index) => a - index - 1).join(", ")}.`
+        : `Pense à l’addition : ${b} + ${a - b} = ${a}, donc ${a} − ${b} = ${a - b}.`;
+    case "sub20":
+      return `Redescends à 10 : ${a} − ${a - 10} = 10, puis 10 − ${b - (a - 10)} = ${a - b}.`;
+    case "tens":
+      return `${a / 10} dizaines + ${b / 10} dizaines = ${(a + b) / 10} dizaines, donc ${a + b}.`;
+    case "tables2-5":
+    case "tables": {
+      // Use the factor that gives the easiest strategy; the other one is "how many times".
+      const order = [10, 2, 5, 4, 9, 3, 6, 8, 7];
+      const known = order.find((factor) => factor === a || factor === b)!;
+      const times = known === a ? b : a;
+      const tricks: Record<number, string> = {
+        10: `× 10 : on met un zéro. ${times} × 10 = ${times * 10}.`,
+        2: `× 2, c’est le double : ${times} + ${times} = ${times * 2}.`,
+        5: `× 5, c’est la moitié de × 10 : ${times} × 10 = ${times * 10}, la moitié c’est ${times * 5}.`,
+        4: `× 4, c’est le double du double : ${times} → ${times * 2} → ${times * 4}.`,
+        9: `× 9, c’est × 10 moins une fois : ${times * 10} − ${times} = ${times * 9}.`,
+        3: `× 3, c’est × 2 plus une fois : ${times * 2} + ${times} = ${times * 3}.`,
+        6: `× 6, c’est × 5 plus une fois : ${times * 5} + ${times} = ${times * 6}.`,
+        8: `× 8, c’est le double de × 4 : ${times * 4} + ${times * 4} = ${times * 8}.`,
+        7: `× 7, c’est × 5 plus × 2 : ${times * 5} + ${times * 2} = ${times * 7}.`,
+      };
+      return a === b ? `${a} × ${a}, un carré à retenir : ${a * a}. ${tricks[known]}` : tricks[known];
+    }
+  }
+}
+
+/** The strategy to remind before a timed minute starts (IES: remind students of a strategy they know). */
+export const SET_STRATEGY: Record<FactSet, string> = {
+  complements10: "Astuce : pense au cadre de 10 et aux cases vides.",
+  add10: "Astuce : pars toujours du plus grand nombre.",
+  sub10: "Astuce : une soustraction, c’est une addition à trou.",
+  doubles: "Astuce : 6 + 6, c’est 5 + 5 et encore 1 + 1.",
+  add20: "Astuce : fais 10 d’abord. 8 + 5 = 8 + 2 + 3.",
+  sub20: "Astuce : redescends à 10 d’abord. 13 − 5 = 13 − 3 − 2.",
+  tens: "Astuce : compte les dizaines. 30 + 40, c’est 3 + 4 dizaines.",
+  "tables2-5": "Astuce : × 2 c’est le double, × 4 le double du double, × 5 la moitié de × 10.",
+  tables: "Astuce : × 9 = × 10 moins une fois. × 6 = × 5 plus une fois.",
+};
+
+/**
+ * The next fact in a timed sprint. The pool starts with the easiest facts of the set and widens
+ * as the child succeeds (`progress` from 0 to 1), as recommended for fluency work; within it,
+ * facts not yet known are favoured, with a few known ones to keep the minute encouraging.
+ */
+export function sprintFact(set: FactSet, facts: Record<string, FactStat>, rng: Rng = Math.random, avoid?: string, progress = 1): FactItem {
+  const sorted = [...factsIn(set)].sort((x, y) => factDifficulty(x) - factDifficulty(y));
+  const size = Math.max(4, Math.ceil(sorted.length * (0.3 + 0.7 * Math.min(1, Math.max(0, progress)))));
+  const items = sorted.slice(0, size).filter((fact) => fact.key !== avoid);
   const weak = items.filter((fact) => !isMastered(facts[fact.key]));
   const source = weak.length && rng() < 0.75 ? weak : items;
   return source[Math.floor(rng() * source.length)];
+}
+
+/** Sets a sprint draws from: its own set, or for a mixed sprint the listed sets the child has met (all of them if none yet). */
+export function sprintSets(facts: FactSet | "mixed", mix: FactSet[] | undefined, unlocked: FactSet[]): FactSet[] {
+  if (facts !== "mixed") return [facts];
+  const met = (mix ?? []).filter((set) => unlocked.includes(set));
+  return met.length ? met : mix ?? ["complements10"];
 }

@@ -13,6 +13,8 @@ export type Profile = {
   points: number;
   steps: Record<string, StepRecord>;
   facts: Record<string, FactStat>;
+  /** Scores of each timed minute, oldest first (last 20 kept), so the child can meet or beat their own record. */
+  chrono: Record<string, number[]>;
   /** Consecutive days with at least one finished step or review, and the last such day. */
   streak: number;
   lastDay: number;
@@ -49,7 +51,7 @@ export function saveStore(store: ProfileStore, storage: Writer | undefined = saf
 }
 
 export function createProfile(store: ProfileStore, name: string, avatar: string, id = newId()): ProfileStore {
-  const profile: Profile = { id, name: name.trim().slice(0, 20) || avatarName(avatar), avatar, points: 0, steps: {}, facts: {}, streak: 0, lastDay: 0 };
+  const profile: Profile = { id, name: name.trim().slice(0, 20) || avatarName(avatar), avatar, points: 0, steps: {}, facts: {}, chrono: {}, streak: 0, lastDay: 0 };
   return { activeId: id, profiles: [...store.profiles, profile] };
 }
 
@@ -75,6 +77,18 @@ export function recordStep(profile: Profile, stepId: string, stars: Stars, score
     plays: (before?.plays ?? 0) + 1,
   };
   return { ...profile, points: profile.points + score, steps: { ...profile.steps, [stepId]: record } };
+}
+
+export const CHRONO_HISTORY = 20;
+
+/** Add a timed-minute score to the child's private history. */
+export function recordChrono(profile: Profile, stepId: string, score: number): Profile {
+  const history = [...(profile.chrono[stepId] ?? []), score].slice(-CHRONO_HISTORY);
+  return { ...profile, chrono: { ...profile.chrono, [stepId]: history } };
+}
+
+export function chronoRecord(profile: Profile, stepId: string): number {
+  return Math.max(0, ...(profile.chrono[stepId] ?? []));
 }
 
 /** Count today as a playing day: playing again tomorrow grows the streak, skipping a day restarts it. */
@@ -125,7 +139,7 @@ function sanitizeStore(raw: unknown): ProfileStore {
   const candidate = raw as Partial<ProfileStore>;
   const profiles = Array.isArray(candidate.profiles)
     ? candidate.profiles.filter((profile): profile is Profile => Boolean(profile && typeof profile.id === "string" && typeof profile.name === "string"))
-      .map((profile) => ({ ...profile, points: Number(profile.points) || 0, steps: profile.steps ?? {}, facts: profile.facts ?? {}, streak: Number(profile.streak) || 0, lastDay: Number(profile.lastDay) || 0 }))
+      .map((profile) => ({ ...profile, points: Number(profile.points) || 0, steps: profile.steps ?? {}, facts: profile.facts ?? {}, chrono: profile.chrono ?? {}, streak: Number(profile.streak) || 0, lastDay: Number(profile.lastDay) || 0 }))
     : [];
   const activeId = profiles.some((profile) => profile.id === candidate.activeId) ? candidate.activeId ?? null : null;
   return { activeId, profiles };

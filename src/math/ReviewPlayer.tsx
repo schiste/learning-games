@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { beep, fanfare, speakFrench } from "../audio";
 import { useFactMemory } from "./factMemory";
-import { factChoices, FAST_MS, type FactItem } from "./facts";
+import { factChoices, factStrategy, FAST_MS, type FactItem } from "./facts";
 import { now, useTimeouts } from "./hooks";
 import { roundPoints } from "./logic";
 import { Countdown, Hint, NumberChoices } from "./ui";
@@ -90,7 +90,7 @@ export default function ReviewPlayer({ queue, onFinish, onBack }: {
       <Countdown seconds={SECONDS} />
       <p className="sprint-fact">{fact.text.includes("?") ? fact.text : `${fact.text} = ?`}</p>
       <NumberChoices values={choices} onPick={pick} wrong={wrong} solved={solved} />
-      <Hint message={wrong.length && solved === null ? "Prends ton temps. Tu peux t’aider de tes doigts ou d’un dessin." : ""} />
+      <Hint message={wrong.length && solved === null ? factStrategy(fact) : ""} />
     </div>
   );
 }

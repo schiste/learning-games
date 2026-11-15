@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { fanfare, speakFrench } from "../audio";
 import { nextStep, roundSeconds, type Chapter, type Step } from "./curriculum";
 import { roundPoints, roundStars } from "./logic";
 import type { Stars as StarCount } from "./profiles";
-import { Countdown, Stars } from "./ui";
+import { ChronoChart, Countdown, Stars } from "./ui";
 import { now, type RoundResult } from "./hooks";
 import BlocksGame from "./games/BlocksGame";
 import BondsGame from "./games/BondsGame";
@@ -48,19 +48,21 @@ function Round({ step, onSolved }: { step: Step; onSolved: (result: RoundResult)
   }
 }
 
-export default function StepPlayer({ step, chapter, previousBest, onFinish, onOpen }: {
+export default function StepPlayer({ step, chapter, previousBest, history, onFinish, onOpen }: {
   step: Step;
   chapter: Chapter;
   /** Best score before this play, to celebrate a new record. */
   previousBest: number;
-  onFinish: (stars: StarCount, points: number) => void;
+  /** Earlier scores of this timed minute (empty for other steps), to chart progress at the end. */
+  history: number[];
+  onFinish: (stars: StarCount, points: number, score?: number) => void;
   onOpen: (stepId: string | null) => void;
 }) {
   const [round, setRound] = useState(0);
   const [mistakes, setMistakes] = useState(0);
   const [points, setPoints] = useState(0);
   const [lastGain, setLastGain] = useState<number | null>(null);
-  const [result, setResult] = useState<{ stars: StarCount; points: number; summary?: string } | null>(null);
+  const [result, setResult] = useState<{ stars: StarCount; points: number; summary?: string; score?: number } | null>(null);
   const [attempt, setAttempt] = useState(0);
   const roundStart = useRef(0);
   // Each round's clock starts when it appears on screen.
@@ -70,7 +72,7 @@ export default function StepPlayer({ step, chapter, previousBest, onFinish, onOp
   const following = nextStep(step.id);
   const seconds = roundSeconds(step);
 
-  const solved = ({ mistakes: roundMistakes, solvedAt, stars, points: ownPoints, summary }: RoundResult) => {
+  const solved = ({ mistakes: roundMistakes, solvedAt, stars, points: ownPoints, score, summary }: RoundResult) => {
     const totalMistakes = mistakes + roundMistakes;
     const elapsed = ((solvedAt ?? now()) - roundStart.current) / 1000;
     const gain = ownPoints ?? roundPoints(roundMistakes, seconds ? 1 - elapsed / seconds : 0);
@@ -83,8 +85,8 @@ export default function StepPlayer({ step, chapter, previousBest, onFinish, onOp
       return;
     }
     const earned = stars ?? roundStars(totalMistakes);
-    setResult({ stars: earned, points: totalPoints, summary });
-    onFinish(earned, totalPoints);
+    setResult({ stars: earned, points: totalPoints, summary, score });
+    onFinish(earned, totalPoints, score);
   };
 
   const replay = () => {
@@ -104,6 +106,7 @@ export default function StepPlayer({ step, chapter, previousBest, onFinish, onOp
           <small>{chapter.icon} {chapter.title} · {step.grade}</small>
           <h2>{step.title}</h2>
         </div>
+        {step.engine === "sprint" && <span className="chrono-badge" title="Jeu chronométré">⏱ Chrono {step.config.seconds} s</span>}
         <ol className="m-round-dots" aria-label={`Manche ${Math.min(round + 1, step.rounds)} sur ${step.rounds}`}>
           {Array.from({ length: step.rounds }, (_, index) => (
             <li key={index} className={result || index < round ? "is-done" : index === round ? "is-current" : ""} />
@@ -115,7 +118,11 @@ export default function StepPlayer({ step, chapter, previousBest, onFinish, onOp
       </div>
       <div className="m-stage-body">
         {result
-          ? <StepDone stars={result.stars} points={result.points} record={result.points > previousBest && previousBest > 0} summary={result.summary} hasNext={following !== null} onReplay={replay} onNext={() => onOpen(following?.id ?? null)} />
+          ? (
+            <StepDone stars={result.stars} points={result.points} record={result.points > previousBest && previousBest > 0} summary={result.summary} hasNext={following !== null} onReplay={replay} onNext={() => onOpen(following?.id ?? null)}>
+              {result.score !== undefined && <ChronoChart scores={[...history, result.score]} highlightLast />}
+            </StepDone>
+          )
           : (
             <div className="m-round" key={`${step.id}-${attempt}-${round}`}>
               {seconds && <Countdown seconds={seconds} />}
@@ -127,7 +134,8 @@ export default function StepPlayer({ step, chapter, previousBest, onFinish, onOp
   );
 }
 
-function StepDone({ stars, points, record, summary, hasNext, onReplay, onNext }: {
+function StepDone({ stars, points, record, summary, hasNext, onReplay, onNext, children }: {
+  children?: ReactNode;
   stars: StarCount;
   points: number;
   record: boolean;
@@ -146,6 +154,7 @@ function StepDone({ stars, points, record, summary, hasNext, onReplay, onNext }:
       <Stars value={stars} size="lg" />
       <h2>{title}</h2>
       {summary && <p>{summary}</p>}
+      {children}
       <p><strong>🏆 {points} points</strong></p>
       {record && <p className="m-record">🎉 Nouveau record !</p>}
       {stars < 3 && <p className="m-note">Rejoue pour gagner toutes les étoiles.</p>}

@@ -100,11 +100,18 @@ export function bondsHint(part: number, picked: number, total: number, frame: bo
 
 /* ---------- Sprint: one timed minute of number facts (facts come from facts.ts) ---------- */
 
-export type SprintConfig = { facts: FactSet; seconds: number };
+/**
+ * "mixed" interleaves the sets listed in `mix` that the child has already met (interleaved practice):
+ * deciding which strategy fits is part of the skill.
+ */
+export type SprintConfig = { facts: FactSet; seconds: number } | { facts: "mixed"; mix: FactSet[]; seconds: number };
 
-/** Stars for a minute of practice: generous, because speed comes with time. */
-export function sprintStars(score: number): 1 | 2 | 3 {
-  if (score >= 15) return 3;
+/**
+ * Stars for a minute of practice. Meeting or beating one's own record is worth full marks
+ * (IES 2021: "meet or beat" a previous score), otherwise generous absolute thresholds apply.
+ */
+export function sprintStars(score: number, previousBest = 0): 1 | 2 | 3 {
+  if (score >= 15 || (previousBest > 0 && score >= previousBest && score >= 5)) return 3;
   if (score >= 8) return 2;
   return 1;
 }

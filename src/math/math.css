@@ -475,3 +475,34 @@ button.f-part:not(:disabled):hover { background: #ffe2b0; }
 .f-written i { width: 100%; min-width: 26px; height: 3px; margin: 3px 0; background: currentColor; }
 .f-choice { height: 96px; }
 @media (max-width: 560px) { .money.is-note { width: 86px; height: 50px; } .money.is-coin { width: 56px; height: 56px; } .b-segment { font-size: 16px; height: 40px; } }
+
+/* ---------- Chrono: always recognisable (red stopwatch badge) ---------- */
+.chrono-badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border: 2px solid var(--ink); border-radius: 999px; background: var(--berry); color: white; font-size: 14px; font-weight: 700; white-space: nowrap; }
+.chrono-badge.is-big { padding: 8px 18px; font-size: 22px; box-shadow: 0 4px 0 color-mix(in srgb, var(--berry) 50%, var(--ink)); }
+.m-step.is-timed { border-color: var(--berry); box-shadow: 0 5px 0 color-mix(in srgb, var(--berry) 45%, var(--soft)); }
+.m-step.is-timed .m-step-badge { background: var(--berry); color: white; }
+.m-step.is-timed .m-step-grade { background: color-mix(in srgb, var(--berry) 18%, white); color: #8f2031; font-weight: 700; }
+.m-basics { grid-template-columns: repeat(3, 1fr); }
+.m-basics-card.is-chrono .m-basics-icon { background: var(--berry); color: white; }
+.sprint-strategy { max-width: 560px; margin: 0; padding: 10px 16px; border: 2px dashed #e3a900; border-radius: 16px; background: #fff8e1; font-size: 18px; font-weight: 700; }
+.sprint-goal { display: grid; justify-items: center; gap: 6px; }
+.sprint-goal p { margin: 0; font-size: 18px; }
+.sprint-status span.is-reached { background: var(--good); color: white; border-color: var(--ink); }
+.chrono-chart { position: relative; width: min(100%, 300px); height: 96px; padding: 4px 6px 0; display: flex; align-items: flex-end; gap: 4px; border-bottom: 3px solid var(--ink); }
+.chrono-bar { position: relative; flex: 1; min-width: 12px; border-radius: 6px 6px 0 0; background: color-mix(in srgb, var(--sky) 60%, white); }
+.chrono-bar b { position: absolute; top: -18px; left: 0; right: 0; font-size: 12px; text-align: center; }
+.chrono-bar.is-last { background: var(--sun); }
+.chrono-bar.is-last.is-record { background: var(--good); }
+.chrono-record-line { position: absolute; left: 0; right: 0; height: 0; border-top: 2px dashed var(--berry); }
+.chrono-hub { padding: 18px 16px 28px; display: grid; gap: 14px; }
+.chrono-hub > .m-note { text-align: center; }
+.chrono-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+.chrono-card { padding: 14px; display: grid; justify-items: center; gap: 8px; border: 3px solid var(--ink); border-radius: 22px; background: color-mix(in srgb, var(--accent) 10%, white); text-align: center; }
+.chrono-card.is-early { background: var(--paper); border-style: dashed; }
+.chrono-card header { width: 100%; display: flex; align-items: center; gap: 10px; text-align: left; }
+.chrono-card h3 { margin: 0; font-size: 18px; }
+.chrono-card small { color: #6f6054; }
+.chrono-empty { height: 96px; margin: 0; display: grid; place-items: center; color: #a2927f; }
+.chrono-record { margin: 0; min-height: 1.3em; }
+.chrono-advice { margin: 0; color: #8f2031; font-size: 14px; }
+@media (max-width: 760px) { .m-basics { grid-template-columns: 1fr; } }
