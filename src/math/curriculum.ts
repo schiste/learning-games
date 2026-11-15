@@ -1,7 +1,7 @@
 import type { FactSet } from "./facts";
 import type { ClockConfig, CoinsConfig, FractionConfig, ProblemConfig } from "./everyday";
 import type { MysteryConfig, PatternConfig, SudokuConfig } from "./puzzles";
-import type { BlocksConfig, BondsConfig, BridgeConfig, BuildConfig, CompareConfig, CountConfig, FlashConfig, GroupsConfig, LineConfig, ShareConfig, SprintConfig } from "./logic";
+import type { BlocksConfig, BondsConfig, BridgeConfig, BuildConfig, CompareConfig, CountConfig, EstimateConfig, FlashConfig, GroupsConfig, LineConfig, ShareConfig, SprintConfig } from "./logic";
 
 export type Grade = "CP" | "CE1" | "CE2";
 export type ChapterColor = "sky" | "sun" | "berry" | "leaf" | "plum" | "teal";
@@ -16,6 +16,7 @@ export type StepGame =
   | { engine: "sprint"; config: SprintConfig }
   | { engine: "blocks"; config: BlocksConfig }
   | { engine: "line"; config: LineConfig }
+  | { engine: "estimate"; config: EstimateConfig }
   | { engine: "bridge"; config: BridgeConfig }
   | { engine: "groups"; config: GroupsConfig }
   | { engine: "share"; config: ShareConfig }
@@ -60,6 +61,7 @@ export const CHAPTERS: Chapter[] = [
       { id: "count-10", title: "Jusqu’à 10", goal: "Je compte jusqu’à 10 sans en oublier.", grade: "CP", rounds: 5, engine: "count", config: { min: 4, max: 10 } },
       { id: "basket", title: "Le panier", goal: "Je mets juste le bon nombre dans le panier.", grade: "CP", rounds: 5, engine: "build", config: { min: 3, max: 10 } },
       { id: "more", title: "Le plus", goal: "Je trouve où il y en a le plus.", grade: "CP", rounds: 5, engine: "compare", config: { min: 2, max: 10, mode: "objects", aligned: true } },
+      { id: "estimate-10", title: "La ligne vide", goal: "Sans graduations : où se trouve le nombre ?", grade: "CP", rounds: 5, engine: "estimate", config: { max: 10 } },
       { id: "count-20", title: "Jusqu’à 20", goal: "Je compte de grandes collections.", grade: "CP", rounds: 5, engine: "count", config: { min: 10, max: 20 } },
     ],
   },
@@ -99,7 +101,9 @@ export const CHAPTERS: Chapter[] = [
       { id: "pv-build", title: "Je construis", goal: "10 cubes font une barre de dix. Je construis le nombre.", grade: "CP", rounds: 5, engine: "blocks", config: { max: 99, mode: "build" }, example: ["34, c’est 3 dizaines et 4 unités.", "3 barres de dix, puis 4 petits cubes.", "Si j’ai 10 cubes, ils deviennent 1 barre."] },
       { id: "pv-read", title: "Je lis", goal: "Je compte les dizaines puis les unités.", grade: "CP", rounds: 5, engine: "blocks", config: { max: 99, mode: "read" } },
       { id: "line-20", title: "La règle", goal: "Je place les nombres jusqu’à 20.", grade: "CP", rounds: 5, engine: "line", config: { mode: "place", max: 20 } },
+      { id: "estimate-20", title: "Estimer jusqu’à 20", goal: "J’estime : 10 est au milieu de la ligne.", grade: "CP", rounds: 5, engine: "estimate", config: { max: 20 } },
       { id: "line-100", title: "La grande règle", goal: "Je place les nombres jusqu’à 100.", grade: "CP", rounds: 5, engine: "line", config: { mode: "place", max: 100 } },
+      { id: "estimate-100", title: "Estimer jusqu’à 100", goal: "50 au milieu, 25 au quart : je place le nombre.", grade: "CP", rounds: 6, engine: "estimate", config: { max: 100 } },
       { id: "compare-100", title: "Le plus grand", goal: "Je compare d’abord les dizaines.", grade: "CP", rounds: 6, engine: "compare", config: { min: 10, max: 99, mode: "numbers", aligned: false } },
     ],
   },
@@ -158,6 +162,7 @@ export const CHAPTERS: Chapter[] = [
       { id: "pv-build-1000", title: "Les centaines", goal: "10 barres de dix font une plaque de cent.", grade: "CE1", rounds: 5, engine: "blocks", config: { max: 999, mode: "build" } },
       { id: "pv-read-1000", title: "Lire les centaines", goal: "Je lis les nombres jusqu’à 999, même avec un zéro.", grade: "CE1", rounds: 5, engine: "blocks", config: { max: 999, mode: "read" } },
       { id: "line-1000", title: "La règle des centaines", goal: "Je place les nombres jusqu’à 1 000.", grade: "CE1", rounds: 5, engine: "line", config: { mode: "place", max: 1000 } },
+      { id: "estimate-1000", title: "Estimer jusqu’à 1 000", goal: "Je place les grands nombres sur la ligne vide.", grade: "CE1", rounds: 6, engine: "estimate", config: { max: 1000 } },
       { id: "compare-1000", title: "Le plus grand jusqu’à 1 000", goal: "Je compare les centaines d’abord.", grade: "CE1", rounds: 6, engine: "compare", config: { min: 100, max: 999, mode: "numbers", aligned: false } },
       { id: "pv-build-10000", title: "Les milliers", goal: "10 plaques de cent font un millier.", grade: "CE2", rounds: 5, engine: "blocks", config: { max: 9999, mode: "build" } },
       { id: "pv-read-10000", title: "Lire les milliers", goal: "Je lis les grands nombres, comme 1 093.", grade: "CE2", rounds: 5, engine: "blocks", config: { max: 9999, mode: "read" } },
@@ -237,6 +242,7 @@ export function roundSeconds(step: Step): number | null {
     case "sprint": return null;
     case "blocks": return step.config.mode === "build" ? 12 + 4 * String(step.config.max).length : 12;
     case "line": return step.config.mode === "place" ? 12 : 16;
+    case "estimate": return 10;
     case "bridge": return 20;
     case "groups": return step.config.layout === "bags" ? 16 : 18;
     case "share": return 40;

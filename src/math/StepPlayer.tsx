@@ -10,6 +10,7 @@ import BondsGame from "./games/BondsGame";
 import BridgeGame from "./games/BridgeGame";
 import ClockGame from "./games/ClockGame";
 import CoinsGame from "./games/CoinsGame";
+import EstimateGame from "./games/EstimateGame";
 import FractionGame from "./games/FractionGame";
 import ProblemGame from "./games/ProblemGame";
 import GroupsGame from "./games/GroupsGame";
@@ -36,6 +37,7 @@ function Round({ step, onSolved }: { step: Step; onSolved: (result: RoundResult)
     case "sprint": return <SprintGame config={step.config} onSolved={onSolved} />;
     case "blocks": return <BlocksGame config={step.config} onSolved={onSolved} />;
     case "line": return <LineGame config={step.config} onSolved={onSolved} />;
+    case "estimate": return <EstimateGame config={step.config} onSolved={onSolved} />;
     case "bridge": return <BridgeGame config={step.config} onSolved={onSolved} />;
     case "groups": return <GroupsGame config={step.config} onSolved={onSolved} />;
     case "share": return <ShareGame config={step.config} onSolved={onSolved} />;
