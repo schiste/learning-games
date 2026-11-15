@@ -537,3 +537,8 @@ button.f-part:not(:disabled):hover { background: #ffe2b0; }
 .est-mark.is-target::after { order: -1; }
 .est-mark.is-target b { background: var(--good); }
 .est-line.is-answered { cursor: default; }
+
+/* Mystery number: the active clue stands out, finished clues are ticked. */
+.y-clues li.is-current { border-width: 3px; background: #fff4cf; animation: pop-in .3s ease-out; }
+.y-clues li.is-done { background: #e2f6e8; color: #1d6b3f; }
+.y-number.is-last { border-color: var(--good); border-width: 3px; animation: m-bob 1.4s ease-in-out infinite; }

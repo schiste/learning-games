@@ -89,7 +89,7 @@ export const CHAPTERS: Chapter[] = [
       { id: "sudoku-shapes", title: "La grille des formes", goal: "Une seule forme de chaque dans chaque ligne, colonne et carré.", grade: "CP", rounds: 3, engine: "sudoku", config: { symbols: "shapes", blanks: 5 } },
       { id: "pattern-abc", title: "Les longs colliers", goal: "Des motifs plus longs.", grade: "CP", rounds: 5, engine: "pattern", config: { kind: "shapes", units: ["ABC", "AABB", "AAB"] } },
       { id: "count-on", title: "Les suites de nombres", goal: "De 1 en 1, de 2 en 2 : qu’est-ce qui vient après ?", grade: "CP", rounds: 5, engine: "pattern", config: { kind: "numbers", rules: ["+1", "+2", "-1"] } },
-      { id: "mystery-20", title: "Le nombre mystère", goal: "Je lis les indices et je barre ce qui ne va pas.", grade: "CP", rounds: 4, engine: "mystery", config: { min: 1, max: 20 }, example: ["Indice : « Je suis pair. »", "Je barre 1, 3, 5, 7… tous les nombres impairs.", "Indice suivant, je barre encore… jusqu’à ce qu’il en reste un."] },
+      { id: "mystery-20", title: "Le nombre mystère", goal: "Un indice à la fois : je barre tous les nombres qui ne vont pas.", grade: "CP", rounds: 4, engine: "mystery", config: { min: 1, max: 20 }, example: ["Premier indice : « Je suis pair. »", "Je barre tous les nombres impairs : 1, 3, 5, 7, 9…", "Quand ils sont tous barrés, l’indice suivant apparaît.", "À la fin, il reste un seul nombre : c’est lui !"] },
     ],
   },
   {
@@ -205,7 +205,7 @@ export const CHAPTERS: Chapter[] = [
     steps: [
       { id: "suites-5-10", title: "Les grands bonds", goal: "Des suites de 5 en 5, de 10 en 10, en arrière…", grade: "CE1", rounds: 5, engine: "pattern", config: { kind: "numbers", rules: ["+5", "+10", "-2", "-10"] } },
       { id: "sudoku-digits", title: "La grille des chiffres", goal: "1, 2, 3 et 4 une seule fois partout.", grade: "CE1", rounds: 3, engine: "sudoku", config: { symbols: "digits", blanks: 8 } },
-      { id: "mystery-100", title: "Le détective", goal: "Le nombre mystère jusqu’à 100.", grade: "CE1", rounds: 4, engine: "mystery", config: { min: 10, max: 99 } },
+      { id: "mystery-100", title: "Le détective", goal: "Le nombre mystère jusqu’à 100.", grade: "CE1", rounds: 3, engine: "mystery", config: { min: 10, max: 99 } },
       { id: "suites-x2", title: "Les suites qui doublent", goal: "+3, −3, ×2 : je trouve la règle.", grade: "CE2", rounds: 5, engine: "pattern", config: { kind: "numbers", rules: ["+3", "-3", "x2"] } },
       { id: "sudoku-hard", title: "La grille experte", goal: "Une grille presque vide.", grade: "CE2", rounds: 3, engine: "sudoku", config: { symbols: "digits", blanks: 11 } },
     ],
@@ -247,7 +247,7 @@ export function roundSeconds(step: Step): number | null {
     case "groups": return step.config.layout === "bags" ? 16 : 18;
     case "share": return 40;
     case "pattern": return 15;
-    case "mystery": return 60;
+    case "mystery": return 90;
     case "sudoku": return 45 + step.config.blanks * 6;
     case "clock": return 12;
     case "coins": return step.config.max > 10 ? 30 : 20;

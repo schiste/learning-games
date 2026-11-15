@@ -257,13 +257,33 @@ describe("sequences", () => {
 });
 
 describe("mystery number", () => {
-  it.each([[1, 20], [10, 99]])("between %i and %i, the clues leave exactly one number of the grid: the target", (min, max) => {
-    for (let run = 0; run < 150; run += 1) {
+  it.each([[1, 20], [10, 99]])("between %i and %i, each clue rules out something and the last one leaves only the target", (min, max) => {
+    for (let run = 0; run < 200; run += 1) {
       const round = mysteryRound({ min, max });
       expect(round.candidates).toContain(round.target);
-      expect(round.clues.length).toBeGreaterThanOrEqual(2);
       expect(round.candidates.every((value) => value >= min && value <= max)).toBe(true);
+      expect(round.steps.length).toBeGreaterThanOrEqual(2);
+      let remaining = round.candidates;
+      for (const step of round.steps) {
+        expect(step.excluded.length).toBeGreaterThan(0);
+        expect(step.excluded).not.toContain(round.target);
+        expect(step.excluded.every((value) => remaining.includes(value))).toBe(true);
+        expect(step.tip.length).toBeGreaterThan(10);
+        remaining = remaining.filter((value) => !step.excluded.includes(value));
+      }
+      expect(remaining).toEqual([round.target]);
     }
+  });
+
+  it("never gives a one-digit answer away with its units digit or digit sum", () => {
+    let singleDigit = 0;
+    for (let run = 0; run < 1500; run += 1) {
+      const round = mysteryRound({ min: 1, max: 20 });
+      if (round.target >= 10) continue;
+      singleDigit += 1;
+      for (const step of round.steps) expect(step.text).not.toMatch(/unités|somme/);
+    }
+    expect(singleDigit).toBeGreaterThan(100);
   });
 });
 
