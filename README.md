@@ -1,24 +1,47 @@
 # Dix sur dix
 
-Des jeux tactiles, libres et gratuits pour aider les enfants à comprendre les nombres et consolider les apprentissages fondamentaux du cycle 2.
+Des jeux tactiles, libres et gratuits pour apprendre les mathématiques du CP au CE2 — et pour commencer à lire. Le site fonctionne dans un navigateur, sans compte, sans publicité et sans collecte de données.
 
-Quatre parcours proposent 120 activités, des premières manipulations visuelles jusqu’au calcul mental, à la valeur de position, à l’orthographe, aux mesures et à la géométrie. Le site fonctionne dans un navigateur, sans compte, sans publicité et sans collecte de données.
+## L’aventure des nombres
 
-Chaque jeu possède trois niveaux de complexité — **Découverte**, **Entraînement** et **Défi** — qui font évoluer les nombres, les aides visuelles, le nombre de choix ou la taille du plateau sans changer les règles du jeu.
+Les maths forment un seul parcours guidé : **11 chapitres et 65 étapes**, dans l’ordre où l’on apprend. L’étape suivante est toujours proposée, mais aucune n’est verrouillée.
 
-Les activités disponibles sont La boîte, Les mains, Le panier, La grenouille, Les quilles, Les trous, Les paires, Le chrono, La caisse, La balance, Le chemin et Le partage. Les quatre jeux « Je maîtrise » introduisent la monnaie et la soustraction, l’égalité, les parcours mêlant additions et soustractions, puis la répartition sous contraintes. Les jeux chronométrés sont clairement identifiés ; une erreur ne termine jamais une partie et reste affichée avec une piste concrète pour réessayer. Les réponses numériques fonctionnent au toucher, à la souris et au clavier.
+1. **Compter** — toucher chaque objet en comptant, reconnaître le dé, comparer.
+2. **Faire 10** — le cadre de dix, les maisons des nombres, le chrono du 10.
+3. **Logique** — colliers à motifs, mini-sudoku de formes, suites, nombre mystère.
+4. **Dizaines et unités** — construire et lire avec des cubes et des barres de dix, la ligne des nombres.
+5. **Ajouter et enlever** — la grenouille sur la ligne, passer la dizaine (8 + 5 = 8 + 2 + 3), les doubles.
+6. **Problèmes** — choisir le bon calcul avec un schéma en barres, puis calculer.
+7. **L’heure et la monnaie** — lire l’horloge, payer le prix exact.
+8. **Les grands nombres** — centaines et milliers, y compris les zéros comme dans 1 093.
+9. **Multiplier et partager** — sacs et rectangles, partage équitable avec reste, toutes les tables.
+10. **Les fractions** — lire et colorier des parts égales.
+11. **Énigmes** — suites, sudoku de chiffres, détective des nombres.
 
-Le parcours « Construire les nombres » ajoute neuf jeux répartis entre « Je découvre », « Je m’entraîne » et « Je maîtrise » : Les paquets, L’abaque, Les cartes, Le compteur, Le plus grand, La ligne, La machine, Le détective et Le code. Chaque activité progresse des dizaines et unités aux centaines, puis aux milliers, avec une attention particulière portée à la place des zéros dans des nombres comme 1 093. Les unités, dizaines, centaines et milliers conservent les mêmes couleurs dans tout le parcours. Les échanges sont animés de droite à gauche pour montrer que 10 unités forment 1 dizaine, 10 dizaines forment 1 centaine et 10 centaines forment 1 millier. La Machine utilise une maison d’addition pour décomposer le nombre ajouté, atteindre le prochain nombre rond, puis ajouter ce qui reste.
+Chaque étape s’appuie sur l’un des 18 « moteurs » de jeu (compter, cadre de dix, blocs de numération, ligne des nombres, horloge, monnaie, schéma en barres, sudoku…) avec sa propre configuration : la même manipulation sert au CP puis au CE2, et l’aide visuelle disparaît progressivement.
 
-Le parcours « Apprendre à lire » ajoute neuf jeux dans la même progression : Le piano, J’entends, Les lettres, Les syllabes, Le mot juste, Je frappe, La phrase, L’intrus et La dictée. Il suit les principes publics de Lecture Piano CP : entrée par les graphèmes, fusion tactile des sons, passage des sons simples aux sons complexes et étayage progressif. Les consignes, syllabes, mots, phrases et graphismes ont été créés spécialement pour ce projet ; ce parcours indépendant n’est ni un produit officiel ni une reproduction des ouvrages des Éditions Retz. La synthèse vocale française du navigateur permet de réécouter les sons et les mots à volonté.
+### Jamais d’échec, toujours une piste
 
-Le parcours « Les bases du cycle 2 » rassemble dix espaces : addition et soustraction, multiplication et partage, orthographe et dictée, fractions, problèmes, temps, monnaie, grammaire, mesures et géométrie. Chaque espace contient neuf jeux répartis entre « Je découvre », « Je m’entraîne » et « Je maîtrise ». La classe — CP, CE1 ou CE2 — détermine les notions et les nombres travaillés ; un réglage d’aide indépendant fait évoluer les repères de guidé à autonome sans changer la règle du jeu. Six mécaniques partagées permettent de choisir, construire, ordonner, trier, se déplacer ou répondre contre la montre. Les deux jeux chronométrés durent toujours 60 secondes, acceptent le clavier et colorent progressivement leur décor.
+- Chaque consigne est lue à voix haute (🔊) : un enfant qui ne lit pas encore peut jouer.
+- Une erreur ne termine jamais une manche : elle reste visible avec une piste précise (« Il manque des dizaines : tu en as 2, il en faut 4 »).
+- Un compte à rebours ⚡ transforme la rapidité en points bonus ; quand il est vide, rien n’est perdu : « Prends ton temps ».
 
-Le chrono dure toujours 60 secondes. Son fond se remplit progressivement pour rendre le temps visible : le niveau 1 propose deux termes, les niveaux 2 et 3 passent à trois termes, et le niveau 3 limite tous les nombres et les réponses à la plage de 0 à 5.
+### Scores et joueurs
+
+- **Plusieurs joueurs** par appareil (« Qui joue ? »), chacun avec son animal et ses progrès, gardés uniquement dans ce navigateur.
+- **Par étape** : jusqu’à 3 étoiles et un record de points. **Par chapitre** : la somme des meilleurs records. **Par joueur** : points cumulés, étoiles, étapes terminées et jours de suite.
+
+### Les bases, par cœur
+
+Les compléments à 10, les additions et soustractions, les doubles, le passage de la dizaine et **toutes les tables de 2 à 9** sont suivis fait par fait. Une réponse rapide fait monter le calcul d’une boîte (révision espacée de type Leitner : 0, 1, 2, 4, 7 puis 14 jours) ; une erreur le fait revenir au début. La **Révision du jour** propose d’abord les calculs fragiles, et **Mes progrès** montre ce qui est su par cœur, table par table.
+
+## Apprendre à lire
+
+Le parcours « Lire » propose neuf jeux : Le piano, J’entends, Les lettres, Les syllabes, Le mot juste, Je frappe, La phrase, L’intrus et La dictée. Il suit les principes publics de Lecture Piano CP : entrée par les graphèmes, fusion tactile des sons, passage des sons simples aux sons complexes et étayage progressif. Les consignes, syllabes, mots, phrases et graphismes ont été créés spécialement pour ce projet ; ce parcours indépendant n’est ni un produit officiel ni une reproduction des ouvrages des Éditions Retz.
 
 ## Jouer
 
-Le site public est disponible sur **https://schiste.github.io/learning-games/**. Le parcours de numération est accessible avec **https://schiste.github.io/learning-games/#nombres**, celui de lecture avec **https://schiste.github.io/learning-games/#lecture** et les bases du cycle 2 avec **https://schiste.github.io/learning-games/#cycle-2**.
+Le site public est disponible sur **https://schiste.github.io/learning-games/**. Les maths s’ouvrent par défaut (**#maths**), la lecture avec **https://schiste.github.io/learning-games/#lecture**. Une étape s’ouvre directement avec `#maths/<étape>`, par exemple `#maths/bridge-add`.
 
 ## Développer
 
@@ -37,15 +60,13 @@ npm run check
 
 ## Organisation
 
-- `src/App.tsx` contient le parcours des compléments à 10 et la navigation entre les thèmes.
-- `src/DecimalPage.tsx` contient les neuf jeux de construction des nombres.
-- `src/ReadingPage.tsx` contient les neuf jeux de lecture.
-- `src/CoreSkillsPage.tsx` contient le lecteur commun des 90 jeux du cycle 2.
-- `src/gameLogic.ts` contient la génération des exercices et les fonctions testables.
-- `src/decimalLogic.ts` contient les générateurs et outils de valeur de position.
-- `src/readingLogic.ts` contient les corpus originaux et générateurs d’exercices de lecture.
-- `src/coreSkillsLogic.ts` décrit les dix espaces, les variantes CP/CE1/CE2 et les exercices testables.
-- `src/styles.css`, `src/decimal.css`, `src/reading.css` et `src/core-skills.css` portent le système visuel responsive.
+- `src/App.tsx` contient l’en-tête et la navigation ; `src/route.ts` lit l’adresse.
+- `src/math/curriculum.ts` décrit les chapitres et les étapes : chaque étape = un moteur + une configuration.
+- `src/math/games/` contient les 18 moteurs de jeu ; `src/math/StepPlayer.tsx` enchaîne les manches, le compte à rebours et les points.
+- `src/math/logic.ts`, `puzzles.ts` et `everyday.ts` génèrent les exercices (fonctions pures, testées).
+- `src/math/facts.ts` énumère les faits numériques et applique la révision espacée.
+- `src/math/profiles.ts` gère les joueurs, les scores et le stockage local.
+- `src/ReadingPage.tsx` et `src/readingLogic.ts` contiennent le parcours de lecture.
 - `.github/workflows/deploy.yml` vérifie puis publie le site sur GitHub Pages.
 
 ## Contribuer

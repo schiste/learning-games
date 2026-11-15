@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import AdventurePage from "./math/AdventurePage";
 import ReadingPage from "./ReadingPage";
-import DecimalPage from "./DecimalPage";
-import CoreSkillsPage from "./CoreSkillsPage";
 import { parseRoute, type Route } from "./route";
 
 declare global {
@@ -77,15 +75,11 @@ export default function App() {
       <nav className="topic-switch" aria-label="Choisir un parcours">
         {tab("#maths", "Maths", route.topic === "maths", "🔢")}
         {tab("#lecture", "Lire", route.topic === "reading", "📖")}
-        {tab("#nombres", "Construire les nombres", route.topic === "decimal")}
-        {tab("#cycle-2", "Cycle 2", route.topic === "core")}
       </nav>
 
       <main>
         {route.topic === "maths" && <AdventurePage stepId={route.stepId} onOpen={openStep} />}
         {route.topic === "reading" && <ReadingPage />}
-        {route.topic === "decimal" && <DecimalPage />}
-        {route.topic === "core" && <CoreSkillsPage />}
       </main>
 
       <footer>
