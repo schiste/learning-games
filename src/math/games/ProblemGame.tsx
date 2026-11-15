@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { beep, speakFrench } from "../../audio";
-import { problemOps, problemRound, type ProblemConfig, type ProblemRound } from "../everyday";
+import { problemOps, problemRound, SCHEMA, type ProblemConfig, type ProblemRound } from "../everyday";
 import { useAnswer, type RoundProps } from "../hooks";
 import { Hint, NumberChoices, Prompt } from "../ui";
 
@@ -40,6 +40,8 @@ export default function ProblemGame({ config, onSolved }: RoundProps<ProblemConf
   const total = Math.max(...[model.top, model.bottom].map((row) => row.reduce((sum, segment) => sum + segment.size, 0)));
   const { pick, wrong, solved, hint } = useAnswer(round.answer, (result) => onSolved({ ...result, mistakes: result.mistakes + wrongOps.length }),
     () => `Calcule ${round.a} ${round.op} ${round.b}.`);
+  const schema = SCHEMA[round.kind];
+  const schemaVisible = config.showSchema || op !== null;
 
   const chooseOp = (candidate: ProblemRound["op"]) => {
     if (op || wrongOps.includes(candidate)) return;
@@ -67,6 +69,7 @@ export default function ProblemGame({ config, onSolved }: RoundProps<ProblemConf
     <div className="m-game problem-game" data-scene={JSON.stringify({ op: round.op, answer: round.answer, kind: round.kind })}>
       <Prompt text={round.story} speech={`${round.story} ${round.question}`} />
       <p className="b-question">{round.question}</p>
+      {schemaVisible && <p className="b-schema"><span aria-hidden="true">{schema.icon}</span> {schema.name}</p>}
       <div className="b-model" aria-hidden="true" style={{ width: `${Math.min(100, 50 + total * 2)}%` }}>
         {row(model.top, "top")}
         {row(model.bottom, "bottom")}
@@ -82,7 +85,7 @@ export default function ProblemGame({ config, onSolved }: RoundProps<ProblemConf
                 </button>
               ))}
             </div>
-            <Hint message={wrongOps.length ? OP_HINT[round.kind] : ""} />
+            <Hint message={wrongOps.length ? `${config.showSchema ? "" : `${schema.sentence} `}${OP_HINT[round.kind]}${round.extra !== null ? ` Attention : le nombre ${round.extra} ne sert à rien ici.` : ""}` : ""} />
           </>
         )
         : (

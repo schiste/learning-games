@@ -39,6 +39,11 @@ export type Step = StepGame & {
   rounds: number;
   /** Facts this step introduces; once it is finished they join the daily review. Sprints teach their own set. */
   teaches?: FactSet;
+  /**
+   * A worked example shown line by line before the first round (worked-example effect,
+   * Barbieri et al. 2023, g = 0.48). Plain steps, no extra questions: prompts did not help in that meta-analysis.
+   */
+  example?: string[];
 };
 
 export type Chapter = { id: string; title: string; icon: string; color: ChapterColor; steps: Step[] };
@@ -65,9 +70,9 @@ export const CHAPTERS: Chapter[] = [
     color: "sun",
     steps: [
       { id: "frame", title: "Le cadre", goal: "Je vois 5 et 10 d’un coup d’œil.", grade: "CP", rounds: 5, engine: "flash", config: { max: 10, pattern: "frame", showMs: 2500 } },
-      { id: "house-5", title: "La maison du 5", goal: "Je trouve ce qui manque pour faire 5.", grade: "CP", rounds: 5, engine: "bonds", config: { totals: [5], frame: true } },
+      { id: "house-5", title: "La maison du 5", goal: "Je trouve ce qui manque pour faire 5.", grade: "CP", rounds: 5, engine: "bonds", config: { totals: [5], frame: true }, example: ["La maison du 5 : 5 = 3 + ?", "Sur le cadre, 3 jetons. Il reste 2 cases vides.", "Donc 3 et 2 font 5."] },
       { id: "houses", title: "Les maisons", goal: "Je casse un nombre en deux morceaux.", grade: "CP", rounds: 6, engine: "bonds", config: { totals: [6, 7, 8, 9], frame: true } },
-      { id: "make-10", title: "Faire 10", goal: "Je trouve ce qui manque pour faire 10.", grade: "CP", rounds: 6, teaches: "complements10", engine: "bonds", config: { totals: [10], frame: true } },
+      { id: "make-10", title: "Faire 10", goal: "Je trouve ce qui manque pour faire 10.", grade: "CP", rounds: 6, teaches: "complements10", engine: "bonds", config: { totals: [10], frame: true }, example: ["6 + ? = 10", "6 jetons sur le cadre de 10 : il reste 4 cases vides.", "Donc 6 + 4 = 10."] },
       { id: "make-10-head", title: "10 dans la tête", goal: "Je fais 10 sans regarder le cadre.", grade: "CP", rounds: 6, engine: "bonds", config: { totals: [10], frame: false } },
       { id: "sprint-10", title: "Chrono du 10", goal: "Une minute pour faire 10 le plus de fois possible.", grade: "CP", rounds: 1, engine: "sprint", config: { facts: "complements10", seconds: 60 } },
     ],
@@ -82,7 +87,7 @@ export const CHAPTERS: Chapter[] = [
       { id: "sudoku-shapes", title: "La grille des formes", goal: "Une seule forme de chaque dans chaque ligne, colonne et carré.", grade: "CP", rounds: 3, engine: "sudoku", config: { symbols: "shapes", blanks: 5 } },
       { id: "pattern-abc", title: "Les longs colliers", goal: "Des motifs plus longs.", grade: "CP", rounds: 5, engine: "pattern", config: { kind: "shapes", units: ["ABC", "AABB", "AAB"] } },
       { id: "count-on", title: "Les suites de nombres", goal: "De 1 en 1, de 2 en 2 : qu’est-ce qui vient après ?", grade: "CP", rounds: 5, engine: "pattern", config: { kind: "numbers", rules: ["+1", "+2", "-1"] } },
-      { id: "mystery-20", title: "Le nombre mystère", goal: "Je lis les indices et je barre ce qui ne va pas.", grade: "CP", rounds: 4, engine: "mystery", config: { min: 1, max: 20 } },
+      { id: "mystery-20", title: "Le nombre mystère", goal: "Je lis les indices et je barre ce qui ne va pas.", grade: "CP", rounds: 4, engine: "mystery", config: { min: 1, max: 20 }, example: ["Indice : « Je suis pair. »", "Je barre 1, 3, 5, 7… tous les nombres impairs.", "Indice suivant, je barre encore… jusqu’à ce qu’il en reste un."] },
     ],
   },
   {
@@ -91,7 +96,7 @@ export const CHAPTERS: Chapter[] = [
     icon: "🧱",
     color: "berry",
     steps: [
-      { id: "pv-build", title: "Je construis", goal: "10 cubes font une barre de dix. Je construis le nombre.", grade: "CP", rounds: 5, engine: "blocks", config: { max: 99, mode: "build" } },
+      { id: "pv-build", title: "Je construis", goal: "10 cubes font une barre de dix. Je construis le nombre.", grade: "CP", rounds: 5, engine: "blocks", config: { max: 99, mode: "build" }, example: ["34, c’est 3 dizaines et 4 unités.", "3 barres de dix, puis 4 petits cubes.", "Si j’ai 10 cubes, ils deviennent 1 barre."] },
       { id: "pv-read", title: "Je lis", goal: "Je compte les dizaines puis les unités.", grade: "CP", rounds: 5, engine: "blocks", config: { max: 99, mode: "read" } },
       { id: "line-20", title: "La règle", goal: "Je place les nombres jusqu’à 20.", grade: "CP", rounds: 5, engine: "line", config: { mode: "place", max: 20 } },
       { id: "line-100", title: "La grande règle", goal: "Je place les nombres jusqu’à 100.", grade: "CP", rounds: 5, engine: "line", config: { mode: "place", max: 100 } },
@@ -104,14 +109,14 @@ export const CHAPTERS: Chapter[] = [
     icon: "🐸",
     color: "leaf",
     steps: [
-      { id: "hop-add", title: "La grenouille avance", goal: "Ajouter, c’est avancer sur la ligne.", grade: "CP", rounds: 5, engine: "line", config: { mode: "hop", max: 10, op: "+", hop: 1, maxHops: 5 } },
+      { id: "hop-add", title: "La grenouille avance", goal: "Ajouter, c’est avancer sur la ligne.", grade: "CP", rounds: 5, engine: "line", config: { mode: "hop", max: 10, op: "+", hop: 1, maxHops: 5 }, example: ["5 + 3 = ?", "La grenouille part de 5 et fait 3 sauts : 6, 7, 8.", "Elle arrive sur 8 : 5 + 3 = 8."] },
       { id: "hop-sub", title: "La grenouille recule", goal: "Enlever, c’est reculer sur la ligne.", grade: "CP", rounds: 5, engine: "line", config: { mode: "hop", max: 10, op: "−", hop: 1, maxHops: 5 } },
       { id: "sprint-add10", title: "Chrono +", goal: "Une minute d’additions jusqu’à 10.", grade: "CP", rounds: 1, engine: "sprint", config: { facts: "add10", seconds: 60 } },
       { id: "sprint-doubles", title: "Les doubles", goal: "Je connais les doubles par cœur.", grade: "CP", rounds: 1, engine: "sprint", config: { facts: "doubles", seconds: 60 } },
       { id: "sprint-sub10", title: "Chrono −", goal: "Une minute de soustractions jusqu’à 10.", grade: "CP", rounds: 1, engine: "sprint", config: { facts: "sub10", seconds: 60 } },
-      { id: "bridge-add", title: "Passer la dizaine", goal: "Je complète la dizaine, puis j’ajoute le reste.", grade: "CE1", rounds: 5, engine: "bridge", config: { op: "+" }, teaches: "add20" },
-      { id: "bridge-sub", title: "Redescendre à 10", goal: "Je reviens à 10, puis j’enlève le reste.", grade: "CE1", rounds: 5, engine: "bridge", config: { op: "−" }, teaches: "sub20" },
-      { id: "hop-tens", title: "Les bonds de 10", goal: "Ajouter 10, c’est changer les dizaines.", grade: "CE1", rounds: 5, engine: "line", config: { mode: "hop", max: 100, op: "±", hop: 10, maxHops: 4 } },
+      { id: "bridge-add", title: "Passer la dizaine", goal: "Je complète la dizaine, puis j’ajoute le reste.", grade: "CE1", rounds: 5, engine: "bridge", config: { op: "+" }, teaches: "add20", example: ["8 + 5 = ?", "Je complète la dizaine : 8 + 2 = 10.", "Il reste 3 à ajouter : 10 + 3 = 13.", "Donc 8 + 5 = 13."] },
+      { id: "bridge-sub", title: "Redescendre à 10", goal: "Je reviens à 10, puis j’enlève le reste.", grade: "CE1", rounds: 5, engine: "bridge", config: { op: "−" }, teaches: "sub20", example: ["13 − 5 = ?", "Je redescends à 10 : 13 − 3 = 10.", "Il reste 2 à enlever : 10 − 2 = 8.", "Donc 13 − 5 = 8."] },
+      { id: "hop-tens", title: "Les bonds de 10", goal: "Ajouter 10, c’est changer les dizaines.", grade: "CE1", rounds: 5, engine: "line", config: { mode: "hop", max: 100, op: "±", hop: 10, maxHops: 4 }, example: ["34 + 20 = ?", "Deux bonds de 10 : 34 → 44 → 54.", "Les dizaines changent, les unités restent 4 : 54."] },
       { id: "sprint-20", title: "Chrono jusqu’à 20", goal: "Une minute pour passer la dizaine.", grade: "CE1", rounds: 1, engine: "sprint", config: { facts: "add20", seconds: 60 } },
       { id: "sprint-tens", title: "Chrono des dizaines", goal: "Une minute d’additions de dizaines.", grade: "CE1", rounds: 1, engine: "sprint", config: { facts: "tens", seconds: 60 } },
       { id: "sprint-mixed-addsub", title: "Chrono mélangé", goal: "Additions et soustractions mélangées : je choisis la bonne astuce.", grade: "CE1", rounds: 1, engine: "sprint", config: { facts: "mixed", mix: ["complements10", "add10", "sub10", "doubles", "add20", "sub20", "tens"], seconds: 60 } },
@@ -123,10 +128,11 @@ export const CHAPTERS: Chapter[] = [
     icon: "📖",
     color: "sun",
     steps: [
-      { id: "story-add", title: "Les histoires", goal: "J’écoute l’histoire : on ajoute ou on enlève ?", grade: "CP", rounds: 5, engine: "problem", config: { kinds: ["join", "separate"], max: 20 } },
-      { id: "story-compare", title: "Combien de plus ?", goal: "Je compare deux quantités avec la barre.", grade: "CE1", rounds: 5, engine: "problem", config: { kinds: ["join", "separate", "compare"], max: 50 } },
-      { id: "story-times", title: "Les boîtes", goal: "Des groupes égaux ou un partage ?", grade: "CE1", rounds: 5, engine: "problem", config: { kinds: ["groups", "share", "join"], max: 40 } },
-      { id: "story-mix", title: "Le grand mélange", goal: "Tous les problèmes : je choisis le bon calcul.", grade: "CE2", rounds: 6, engine: "problem", config: { kinds: ["join", "separate", "compare", "groups", "share"], max: 100 } },
+      { id: "story-add", title: "Les histoires", goal: "J’écoute l’histoire : on ajoute ou on enlève ?", grade: "CP", rounds: 5, engine: "problem", config: { kinds: ["join", "separate"], max: 20, showSchema: true }, example: ["Léo a 7 billes. On lui en donne 5.", "C’est une histoire d’ajout : à la fin, il en a plus.", "Le calcul : 7 + 5 = 12."] },
+      { id: "story-compare", title: "Combien de plus ?", goal: "Je compare deux quantités avec la barre.", grade: "CE1", rounds: 5, engine: "problem", config: { kinds: ["join", "separate", "compare"], max: 50, showSchema: true }, example: ["Léo a 9 cartes, Inès en a 5.", "C’est une histoire de comparaison : on cherche l’écart.", "Le calcul : 9 − 5 = 4. Léo en a 4 de plus."] },
+      { id: "story-times", title: "Les boîtes", goal: "Des groupes égaux ou un partage ?", grade: "CE1", rounds: 5, engine: "problem", config: { kinds: ["groups", "share", "join"], max: 40, showSchema: true }, example: ["4 boîtes de 3 crayons.", "Des groupes égaux : 3 + 3 + 3 + 3, c’est 4 × 3.", "4 × 3 = 12 crayons."] },
+      { id: "story-mix", title: "Le grand mélange", goal: "Je reconnais le type d’histoire, puis je choisis le bon calcul.", grade: "CE2", rounds: 6, engine: "problem", config: { kinds: ["join", "separate", "compare", "groups", "share"], max: 100 } },
+      { id: "story-trap", title: "L’intrus du problème", goal: "Une donnée ne sert à rien : je la repère.", grade: "CE2", rounds: 5, engine: "problem", config: { kinds: ["join", "separate", "compare", "groups", "share"], max: 100, distractor: true } },
     ],
   },
   {
@@ -137,7 +143,7 @@ export const CHAPTERS: Chapter[] = [
     steps: [
       { id: "coins-10", title: "La boutique", goal: "Je paie avec des pièces de 1 € et 2 €.", grade: "CP", rounds: 5, engine: "coins", config: { max: 10, values: [1, 2] } },
       { id: "clock-hours", title: "Les heures", goal: "La petite aiguille montre l’heure.", grade: "CP", rounds: 5, engine: "clock", config: { minutes: [0] } },
-      { id: "clock-half", title: "Et demie", goal: "Quand la grande aiguille est en bas : et demie.", grade: "CE1", rounds: 5, engine: "clock", config: { minutes: [0, 30] } },
+      { id: "clock-half", title: "Et demie", goal: "Quand la grande aiguille est en bas : et demie.", grade: "CE1", rounds: 5, engine: "clock", config: { minutes: [0, 30] }, example: ["La petite aiguille entre le 3 et le 4.", "La grande aiguille sur le 6 : c’est la moitié du tour.", "Il est 3 h 30, trois heures et demie."] },
       { id: "coins-50", title: "Le marché", goal: "Je paie avec des billets et des pièces.", grade: "CE1", rounds: 5, engine: "coins", config: { max: 50, values: [1, 2, 5, 10, 20] } },
       { id: "clock-quarter", title: "Les quarts d’heure", goal: "Et quart, et demie, moins le quart.", grade: "CE2", rounds: 5, engine: "clock", config: { minutes: [0, 15, 30, 45] } },
       { id: "clock-five", title: "Les minutes", goal: "La grande aiguille avance de 5 minutes par chiffre.", grade: "CE2", rounds: 5, engine: "clock", config: { minutes: [5] } },
@@ -164,12 +170,12 @@ export const CHAPTERS: Chapter[] = [
     icon: "✖️",
     color: "teal",
     steps: [
-      { id: "bags-2-5", title: "Les sacs", goal: "Des groupes égaux : je compte de 2 en 2, de 5 en 5…", grade: "CE1", rounds: 5, engine: "groups", config: { tables: [2, 5, 10], maxSize: 5, layout: "bags" } },
+      { id: "bags-2-5", title: "Les sacs", goal: "Des groupes égaux : je compte de 2 en 2, de 5 en 5…", grade: "CE1", rounds: 5, engine: "groups", config: { tables: [2, 5, 10], maxSize: 5, layout: "bags" }, example: ["3 sacs de 4 pommes.", "Je compte de 4 en 4 : 4, 8, 12.", "3 fois 4 = 12."] },
       { id: "array-2-5", title: "Les rectangles", goal: "3 lignes de 4, c’est 3 fois 4. Et si je tourne ?", grade: "CE1", rounds: 5, engine: "groups", config: { tables: [2, 3, 4, 5], maxSize: 6, layout: "array" } },
       { id: "share-fair", title: "Le partage juste", goal: "Je partage pour que chacun ait la même chose.", grade: "CE1", rounds: 4, engine: "share", config: { maxFriends: 4, maxEach: 5, remainder: false } },
       { id: "sprint-tables-2-5", title: "Chrono des tables", goal: "Une minute de tables de 2, 3, 4 et 5.", grade: "CE1", rounds: 1, engine: "sprint", config: { facts: "tables2-5", seconds: 60 } },
-      { id: "array-6-9", title: "Les grands rectangles", goal: "Les tables de 6, 7, 8 et 9.", grade: "CE2", rounds: 6, engine: "groups", config: { tables: [6, 7, 8, 9], maxSize: 9, layout: "array" } },
-      { id: "share-left", title: "Le partage et le reste", goal: "Parfois, il en reste : c’est le reste.", grade: "CE2", rounds: 4, engine: "share", config: { maxFriends: 5, maxEach: 6, remainder: true } },
+      { id: "array-6-9", title: "Les grands rectangles", goal: "Les tables de 6, 7, 8 et 9.", grade: "CE2", rounds: 6, engine: "groups", config: { tables: [6, 7, 8, 9], maxSize: 9, layout: "array" }, example: ["7 × 6 = ?", "5 × 6 = 30 (la moitié de 10 × 6).", "2 × 6 = 12.", "30 + 12 = 42, donc 7 × 6 = 42."] },
+      { id: "share-left", title: "Le partage et le reste", goal: "Parfois, il en reste : c’est le reste.", grade: "CE2", rounds: 4, engine: "share", config: { maxFriends: 5, maxEach: 6, remainder: true }, example: ["14 bonbons pour 4 amis.", "Un tour : 4 bonbons. Trois tours : 12 bonbons.", "Chacun en a 3 et il en reste 2 : 14 = 4 × 3 + 2."] },
       { id: "sprint-tables", title: "Chrono de toutes les tables", goal: "Une minute de tables de 2 à 9.", grade: "CE2", rounds: 1, engine: "sprint", config: { facts: "tables", seconds: 60 } },
       { id: "sprint-mixed-all", title: "Le grand chrono", goal: "Tout ce que je sais, mélangé : +, − et ×.", grade: "CE2", rounds: 1, engine: "sprint", config: { facts: "mixed", mix: ["add20", "sub20", "tens", "tables2-5", "tables"], seconds: 60 } },
     ],
@@ -182,7 +188,7 @@ export const CHAPTERS: Chapter[] = [
     steps: [
       { id: "fraction-unit", title: "Un morceau", goal: "Un demi, un tiers, un quart : des parts égales.", grade: "CE1", rounds: 5, engine: "fraction", config: { denominators: [2, 3, 4], mode: "read", unitOnly: true } },
       { id: "fraction-color-unit", title: "Je colorie", goal: "Je colorie la bonne part.", grade: "CE1", rounds: 5, engine: "fraction", config: { denominators: [2, 3, 4], mode: "color", unitOnly: true } },
-      { id: "fraction-read", title: "Plusieurs morceaux", goal: "Le nombre du bas : les parts. Le nombre du haut : celles qu’on prend.", grade: "CE2", rounds: 5, engine: "fraction", config: { denominators: [3, 4, 5, 6, 8], mode: "read", unitOnly: false } },
+      { id: "fraction-read", title: "Plusieurs morceaux", goal: "Le nombre du bas : les parts. Le nombre du haut : celles qu’on prend.", grade: "CE2", rounds: 5, engine: "fraction", config: { denominators: [3, 4, 5, 6, 8], mode: "read", unitOnly: false }, example: ["La barre est coupée en 4 parts égales : des quarts.", "3 parts sont coloriées.", "C’est 3/4, trois quarts."] },
       { id: "fraction-color", title: "Le chocolat", goal: "Je colorie trois quarts, deux cinquièmes…", grade: "CE2", rounds: 5, engine: "fraction", config: { denominators: [3, 4, 5, 6, 8, 10], mode: "color", unitOnly: false } },
     ],
   },

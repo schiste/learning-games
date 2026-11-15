@@ -28,7 +28,7 @@ import { nearbyChoices } from "./random";
 import { chronoReady, chronoSteps, factSetUnlocks, unlockedFactSets } from "./curriculum";
 import { FACT_SET_INFO, factByKey, factDifficulty, factsIn, factStrategy, isMastered, reviewQueue, SET_STRATEGY, sprintFact, sprintSets, updateFact, type FactSet } from "./facts";
 import { chronoRecord, markPlayed, recordChrono, type Profile } from "./profiles";
-import { clockRound, coinsRound, fewestCoins, formatTime, fractionRound, fractionWords, handAngles, problemRound } from "./everyday";
+import { clockRound, coinsRound, fewestCoins, formatTime, fractionRound, fractionWords, handAngles, problemRound, SCHEMA } from "./everyday";
 import { countSolutions, mysteryRound, patternRound, sudokuConflict, sudokuRound } from "./puzzles";
 
 const RUNS = 300;
@@ -548,6 +548,51 @@ describe("fluency practice (IES 2021, recommendation 6)", () => {
     expect(chronoReady(sprint, () => false).missing.map((step) => step.id)).toContain("bridge-add");
     expect(chronoReady(sprint, () => true).ready).toBe(true);
     expect(chronoSteps().every(({ step }) => step.engine === "sprint")).toBe(true);
+  });
+});
+
+describe("worked examples", () => {
+  const withExamples = ALL_STEPS.filter((step) => step.example);
+
+  it("open the strategy steps, stay short, and never precede a timed minute", () => {
+    expect(withExamples.length).toBeGreaterThanOrEqual(12);
+    for (const step of withExamples) {
+      expect(step.engine).not.toBe("sprint");
+      expect(step.example!.length).toBeGreaterThanOrEqual(2);
+      expect(step.example!.length).toBeLessThanOrEqual(5);
+    }
+  });
+
+  it("contain only correct calculations", () => {
+    const pattern = /(\d+) ([+−×]) (\d+) = (\d+)/g;
+    let checked = 0;
+    for (const step of withExamples) {
+      for (const line of step.example!) {
+        for (const [, a, op, b, result] of line.matchAll(pattern)) {
+          const expected = op === "+" ? +a + +b : op === "−" ? +a - +b : +a * +b;
+          expect(`${step.id}: ${a} ${op} ${b} = ${result}`).toBe(`${step.id}: ${a} ${op} ${b} = ${expected}`);
+          checked += 1;
+        }
+      }
+    }
+    expect(checked).toBeGreaterThanOrEqual(15);
+  });
+});
+
+describe("schema-based word problems", () => {
+  it("name every structure", () => {
+    for (const kind of ["join", "separate", "compare", "groups", "share"] as const) expect(SCHEMA[kind].sentence).toMatch(/\./);
+  });
+
+  it("can hide a number that is not needed, never equal to the data or the answer", () => {
+    for (let run = 0; run < RUNS; run += 1) {
+      const round = problemRound({ kinds: ["join", "separate", "compare", "groups", "share"], max: 100, distractor: true });
+      expect(round.extra).not.toBeNull();
+      expect([round.a, round.b, round.answer]).not.toContain(round.extra);
+      expect(round.story).toContain(String(round.extra));
+      expect(round.story).not.toMatch(/\.\./);
+    }
+    expect(problemRound({ kinds: ["join"], max: 20 }).extra).toBeNull();
   });
 });
 

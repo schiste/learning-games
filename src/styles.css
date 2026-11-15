@@ -147,11 +147,11 @@ footer a { text-underline-offset: 3px; }
 
 .topic-switch a {
   gap: 8px;
-  grid-auto-flow: column;
   min-height: 42px;
   padding: 9px 18px;
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 999px;
   color: #756459;
   font-size: 15px;
